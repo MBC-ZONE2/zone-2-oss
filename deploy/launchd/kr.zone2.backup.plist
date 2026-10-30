@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ZONE-2 야간 백업 — 매일 04:20 DB 덤프(14일 보존) + 일요일 스토리지 묶음(4개 보존).
+     스크립트는 저장소가 아니라 __HOME__/zone2-backups/bin/ 의 사본을 돌린다: launchd 가 띄운 /bin/bash 는 macOS 폴더 보호(TCC) 때문에
+     ~/Documents 안의 파일을 읽을 수 없다(2026-10-27 "Operation not permitted", exit 126). 설치·갱신은 `bash scripts/ops/backup-db.sh --install`. -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>kr.zone2.backup</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__HOME__/zone2-backups/bin/backup-db.sh</string>
+  </array>
+  <key>WorkingDirectory</key><string>__HOME__</string>
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>4</integer><key>Minute</key><integer>20</integer></dict>
+  <key>StandardOutPath</key><string>/tmp/zone2-backup.log</string>
+  <key>StandardErrorPath</key><string>/tmp/zone2-backup.err</string>
+</dict>
+</plist>

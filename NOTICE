@@ -1,0 +1,28 @@
+ZONE-2
+Copyright 2026 MBC충북(MBC Chungbuk), 옥천신문(Okinews) — ZONE-2 Consortium
+
+이 소프트웨어는 한국언론진흥재단(Korea Press Foundation)
+2026년 디지털 미디어 개발 지원사업의 일환으로 개발되었습니다.
+
+광역 방송사와 기초 지역신문의 협업 모델을 오픈소스로 공개하여
+전국 지역 언론사가 자유롭게 활용·복제할 수 있도록 합니다.
+
+상표 고지: "MBC충북", "옥천신문" 의 명칭과 로고, 그리고 한국언론진흥재단 CI(public/logos/kpf*.png)는 각 기관의 상표이며
+Apache License 2.0 제6조에 따라 이 라이선스가 허락하는 대상이 아닙니다.
+이 소프트웨어를 포크·재배포할 때는 자사의 표식으로 교체해야 합니다.
+제3자 구성요소의 라이선스는 THIRD_PARTY_NOTICES.md 와 종속성 목록(SBOM) sbom.cdx.json 에 있습니다.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+데이터 이용 권리: 이 소프트웨어의 공개는 MBC충북·옥천신문의 기사·댓글·사진 등 콘텐츠를 수집·이용할 권리를 부여하지 않는다.
+두 매체의 콘텐츠는 각 사의 저작물이며, 그 수집기는 컨소시엄 운영용으로 공개 저장소에 포함되지 않는다.

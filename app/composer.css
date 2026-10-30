@@ -1,0 +1,197 @@
+/* ==========================================================================
+   composer.css — 의견 작성기 <OpinionComposer> (.opc) · 「일점 지면」 문법
+
+   세 자리(크로스뷰 상세 검은 타일 · 카드 스토리 4페이지 · 공론장 글쓰기/댓글)가
+   같은 모양 하나를 쓴다. 구성은 언제나 같다:
+     (free 만) 제목 한 줄 → 큰 입력창(3줄→최대 8줄 자동) → [이름 (선택)] [비밀번호]
+     → 오류 한 줄(필요할 때) → '올리기' 검정 블록 52px.
+   카드·라운드·그림자·유리·그라디언트 없음. 괘선 1px. 등장 애니메이션 없음(찍힘).
+   tone="dark"(.opc-dark, 검은 타일 안): 입력 면은 종이 #f4f5f7 + 잉크 글자,
+   괘선은 백색 .25, 버튼은 백색 채움 + 검정 글자. 고대비 모드는 종이 톤을 같은 방식으로
+   뒤집는다. 토큰은 .opc 가 스스로 갖는다(어느 스코프에 마운트해도 같은 모양).
+   ========================================================================== */
+
+.opc {
+  --opc-ink: #111111;          /* 잉크 본문 — 입력 글자·오류·확인 */
+  --opc-sub: #5b6170;          /* 보조 잉크 — 플레이스홀더·보조 안내·카운터 */
+  --opc-paper: #f4f5f7;        /* 종이 */
+  --opc-rule: #1c2130;         /* 괘선 1px */
+  --opc-field-bg: transparent; /* 입력 면(종이 위에서는 투명, 검은 타일에서는 종이) */
+  --opc-field-pad-x: 12px;     /* 사방 괘선 칸이므로 종이 위에서도 안쪽 여백 */
+  --opc-btn-bg: #111111;       /* '올리기' 블록 */
+  --opc-btn-fg: #f4f5f7;
+  --opc-btn-off: #697082;      /* 보내는 중 — 글자 #f4f5f7 와 4.54:1 (이전 #8a8f9c 는 2.97:1) */
+  --opc-fs-body: 17px;
+  --opc-fs-meta: 15px;
+  --opc-fs-note: 13px;
+
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  color: var(--opc-ink);
+  display: grid;
+  gap: 0;
+  padding-top: 4px;
+  word-break: keep-all;
+}
+/* 검은 타일 안 — 입력 면은 종이, 괘선은 백색 .25, 버튼은 백색 */
+.opc-dark {
+  --opc-rule: rgba(244, 245, 247, 0.25);
+  --opc-field-bg: #f4f5f7;
+  --opc-field-pad-x: 12px;
+  --opc-btn-bg: #ffffff;
+  --opc-btn-fg: #0b0d12;
+  --opc-btn-off: rgba(244, 245, 247, 0.4);
+  color: #f4f5f7;
+}
+/* 고대비 — 종이 톤도 검은 세계로. 입력 면은 종이(잉크 글자)로 두어 18:1 유지 */
+html[data-contrast="high"] .opc:not(.opc-dark) {
+  --opc-rule: #f4f5f7;
+  --opc-field-bg: #f4f5f7;
+  --opc-field-pad-x: 12px;
+  --opc-btn-bg: #f4f5f7;
+  --opc-btn-fg: #0b0d12;
+  --opc-btn-off: rgba(244, 245, 247, 0.4);
+  color: #f4f5f7;
+}
+/* 큰글씨 — 본문 21 · 메타 18 · 보조 15 */
+html[data-font-size="large"] .opc {
+  --opc-fs-body: 21px;
+  --opc-fs-meta: 18px;
+  --opc-fs-note: 15px;
+}
+
+/* sr-only 라벨 — placeholder 가 곧 라벨이지만 보조기기에는 이름을 준다 */
+.opc-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* ── 입력 공통 — 칸마다 사방 1px 괘선, 칸 사이 10px 여백(시범단 #178: 밑줄만으로는 내용·이름·비밀번호가
+   한 창처럼 보였다). 포커스는 2px 로 굵어진다(높이 불변 — 안쪽 여백에서 1px 뺀다) ─────── */
+.opc-title,
+.opc-body,
+.opc-input {
+  appearance: none; width: 100%; min-width: 0; margin: 0;
+  padding: 10px var(--opc-field-pad-x);
+  background: var(--opc-field-bg); color: var(--opc-ink);
+  border: 1px solid var(--opc-rule); border-radius: 0; box-shadow: none;
+  font: inherit; line-height: 1.65;
+  -webkit-user-select: text; user-select: text;
+}
+.opc-row, .opc-body-wrap, .opc-ident { margin-bottom: 10px; }
+.opc-title::placeholder,
+.opc-body::placeholder,
+.opc-input::placeholder { color: var(--opc-sub); opacity: 1; }
+.opc-title:focus,
+.opc-body:focus,
+.opc-input:focus {
+  outline: none; border-color: var(--opc-ink); border-width: 2px;
+  padding: 9px calc(var(--opc-field-pad-x) - 1px);
+}
+.opc-dark .opc-title:focus,
+.opc-dark .opc-body:focus,
+.opc-dark .opc-input:focus,
+html[data-contrast="high"] .opc .opc-title:focus,
+html[data-contrast="high"] .opc .opc-body:focus,
+html[data-contrast="high"] .opc .opc-input:focus { border-color: #ffffff; }
+/* 오류 = 점선(미완). 색에 기대지 않는다 — 활자 안내가 따로 붙는다 */
+.opc-title[aria-invalid="true"],
+.opc-body[aria-invalid="true"],
+.opc-input[aria-invalid="true"] { border-style: dashed; }
+.opc-title:disabled,
+.opc-body:disabled,
+.opc-input:disabled { opacity: 0.6; }
+
+/* 1. 제목 한 줄(free 만) — 15px, 아래 괘선 */
+.opc-title { font-size: var(--opc-fs-meta); font-weight: 700; min-height: 44px; }
+
+/* 2. 큰 입력창 — 17px/1.65, 최소 3줄. 높이는 스크립트가 최대 8줄까지 늘린다 */
+.opc-body-wrap { position: relative; display: grid; }
+.opc-body {
+  font-size: var(--opc-fs-body); font-weight: 400;
+  resize: none; overflow-y: auto; display: block;
+}
+/* 글자 수 — 상한 90% 넘을 때만 우측 하단에 15px */
+.opc-count {
+  position: absolute; right: var(--opc-field-pad-x); bottom: 8px;
+  font-size: var(--opc-fs-meta); font-weight: 500; line-height: 1;
+  color: var(--opc-sub); font-variant-numeric: tabular-nums;
+  padding-left: 8px; background: var(--opc-field-bg);
+}
+.opc-dark .opc-count,
+html[data-contrast="high"] .opc .opc-count { color: #5b6170; background: #f4f5f7; }
+
+/* 3. 이름 · 비밀번호 — 한 줄 2열, 44px. 좁으면 1열(세로로도 10px 띄운다) */
+.opc-ident { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; align-items: start; }
+@media (max-width: 359px) {
+  .opc-ident { grid-template-columns: 1fr; }
+}
+.opc-cell { display: grid; gap: 4px; min-width: 0; }
+.opc-input { font-size: var(--opc-fs-meta); font-weight: 500; min-height: 44px; }
+/* 비밀번호 열 밑 한 줄 — 13px 보조색 */
+.opc-note { margin: 0; font-size: var(--opc-fs-note); font-weight: 500; line-height: 1.5; color: var(--opc-sub); }
+.opc-dark .opc-note,
+html[data-contrast="high"] .opc .opc-note { color: rgba(244, 245, 247, 0.7); }
+
+/* 4. 오류·확인 한 줄(버튼 위) + '올리기' 검정 블록 */
+.opc-foot { display: grid; gap: 8px; padding-top: 4px; }
+.opc-msg { margin: 0; min-height: 0; font-size: var(--opc-fs-meta); font-weight: 700; line-height: 1.5; color: inherit; }
+.opc-msg:empty { display: none; }
+.opc-msg.is-error::before { content: "! "; }
+.opc-msg.is-ok { font-weight: 500; }
+.opc-submit {
+  appearance: none; margin: 0; padding: 0 24px;
+  width: 100%; min-height: 52px;
+  border: 0; border-radius: 0; box-shadow: none;
+  background: var(--opc-btn-bg); color: var(--opc-btn-fg);
+  font: inherit; font-size: var(--opc-fs-body); font-weight: 700; line-height: 1; cursor: pointer;
+}
+.opc-submit:active { opacity: 0.85; }
+.opc-submit:disabled { background: var(--opc-btn-off); cursor: default; opacity: 1; }
+.opc-submit:focus-visible { outline: 2px solid var(--opc-ink); outline-offset: 3px; }
+.opc-dark .opc-submit:focus-visible,
+html[data-contrast="high"] .opc .opc-submit:focus-visible { outline-color: #ffffff; }
+/* 넓은 지면(≥480px)에서는 우측 정렬 최소 140px */
+@media (min-width: 480px) {
+  .opc-submit { width: auto; min-width: 160px; justify-self: end; }
+}
+
+/* ── 사진 1장 · 자동등록방지 · honeypot (2026-10-19) ─────────────────────── */
+.opc { position: relative; }
+.opc-photo { margin-bottom: 10px; }
+.opc-photo-add {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 2px;
+  font-size: var(--opc-fs-meta); font-weight: 700; color: var(--opc-ink); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 4px;
+}
+.opc-photo-hint { font-weight: 500; color: var(--opc-sub); text-decoration: none; }
+/* 숨긴 file input 에 키보드 포커스가 오면 라벨에 외곽선(codex 리뷰) */
+.opc-photo input:focus-visible + .opc-photo-add { outline: 2px solid var(--opc-ink); outline-offset: 3px; }
+.opc-photo-prev { display: grid; gap: 6px; justify-items: start; }
+.opc-photo-prev img { display: block; max-width: 100%; max-height: 280px; border: 0; border-radius: 12px; }
+.opc-photo-x {
+  appearance: none; background: none; border: 0; padding: 10px 0; min-height: 44px;
+  font: inherit; font-size: var(--opc-fs-note); font-weight: 700; color: var(--opc-ink); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.opc-captcha { display: grid; grid-template-columns: minmax(0, 1fr) 88px auto; gap: 10px 12px; align-items: center; margin-bottom: 10px; }
+.opc-captcha-q { display: grid; gap: 2px; min-width: 0; }
+.opc-captcha-k { font-size: var(--opc-fs-note); font-weight: 500; color: var(--opc-sub); }
+.opc-captcha-eq { font-size: var(--opc-fs-body); font-weight: 800; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; color: var(--opc-ink); }
+.opc-captcha-eq.is-wait { font-size: var(--opc-fs-note); font-weight: 500; color: var(--opc-sub); letter-spacing: 0; }
+.opc-captcha-in { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.opc-captcha-new {
+  appearance: none; background: none; border: 0; padding: 10px 0; min-height: 44px;
+  font: inherit; font-size: var(--opc-fs-note); font-weight: 700; color: var(--opc-ink); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px; white-space: nowrap;
+}
+.opc-captcha-new:disabled { opacity: 0.5; cursor: default; }
+/* 검은 타일(.opc-dark) 위의 밑줄 글자·보조 안내 — 잉크(#111)가 그대로 남아 검은 바탕에서 보이지 않던 것
+   (2026-10-26 대표 "크로스뷰 글자 겹침" 보고 → 실제로는 사진 넣기·다른 문제·자동등록방지 글자가 바탕에 묻힘) */
+.opc-dark .opc-photo-add,
+.opc-dark .opc-captcha-new,
+.opc-dark .opc-captcha-eq { color: #f4f5f7; }
+.opc-dark .opc-photo-hint,
+.opc-dark .opc-captcha-k,
+.opc-dark .opc-captcha-eq.is-wait { color: rgba(244, 245, 247, 0.7); }
+.opc-dark .opc-photo-x { color: #f4f5f7; }
+.opc-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }

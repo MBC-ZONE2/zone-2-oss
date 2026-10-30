@@ -1,0 +1,43 @@
+name: Running ZONE-2 for another region / 다른 지역판 문의
+description: You want to stand up an edition for your own broadcaster × newspaper pairing. 자기 지역의 방송사·신문사 조합으로 띄우려 합니다.
+title: "[region] "
+labels: [region]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Start with [config/README.md](../blob/main/config/README.md) and the "Running it for your region" section of the README. Tell us where you got stuck or what the interface is missing.
+        먼저 config/README.md 와 README 의 "다른 지역에서 쓰려면" 을 보시고, 막힌 곳이나 인터페이스에 부족한 점을 알려 주세요.
+        Please do not post collected articles or comments here. 수집한 기사·댓글 본문은 올리지 말아 주세요.
+  - type: input
+    id: outlets
+    attributes:
+      label: Outlets / 매체 조합
+      placeholder: "regional broadcaster × local weekly (names optional / 이름은 생략해도 됩니다)"
+    validations:
+      required: true
+  - type: dropdown
+    id: feeds
+    attributes:
+      label: How the articles arrive / 기사 수집 방식
+      options:
+        - Both outlets have RSS/Atom feeds / 둘 다 RSS·Atom 있음
+        - One outlet has a feed / 한 곳만 있음
+        - No feeds; we need a custom adapter / 피드 없음, 어댑터 구현 필요
+        - Not sure yet / 아직 모름
+    validations:
+      required: true
+  - type: textarea
+    id: stuck
+    attributes:
+      label: Where you are / 어디까지 되었나요
+      description: What you changed in config/region.ts, what ran, and what did not. 설정에서 바꾼 것, 된 것과 안 된 것.
+    validations:
+      required: true
+  - type: checkboxes
+    id: rights
+    attributes:
+      label: Rights / 권리 확인
+      options:
+        - label: We have permission from the outlets whose content we collect. 수집하는 매체의 허가를 받았거나 받을 예정입니다.
+          required: true

@@ -1,0 +1,24 @@
+/* 브리핑 음파형 — 3px 막대 7개, 라운드 없음, currentColor */
+.wave { display: inline-flex; align-items: center; gap: 3px; height: 24px; vertical-align: middle; }
+.wave i { display: block; width: 3px; height: 6px; background: currentColor; border-radius: 0; }
+/* 정지 상태: 낮은 고정 실루엣 */
+.wave i:nth-child(2n) { height: 10px; }
+.wave i:nth-child(4) { height: 14px; }
+/* 재생 중: 막대마다 다른 높이 범위로 흔들린다 */
+.wave.is-on i { animation: wave-bar 0.9s ease-in-out infinite alternate; }
+.wave.is-on i:nth-child(1), .wave.is-on i:nth-child(7) { --hi: 12px; }
+.wave.is-on i:nth-child(2), .wave.is-on i:nth-child(6) { --hi: 18px; }
+.wave.is-on i:nth-child(3), .wave.is-on i:nth-child(5) { --hi: 22px; }
+.wave.is-on i:nth-child(4) { --hi: 24px; }
+@keyframes wave-bar { from { height: 4px; } to { height: var(--hi, 20px); } }
+@media (prefers-reduced-motion: reduce) {
+  .wave.is-on i { animation: none; height: 14px; }
+}
+/* 네비 백색원 안 3막대(재생 중에만 ▶ 대신) */
+.reels-root .float-nav .fn-wave { display: none; align-items: center; gap: 3px; height: 20px; color: var(--black); }
+.reels-root .float-nav .fn-wave i { display: block; width: 3px; height: 8px; background: currentColor; animation: wave-bar 0.8s ease-in-out infinite alternate; --hi: 20px; }
+.reels-root .float-nav .fn-wave i:nth-child(2) { --hi: 14px; animation-delay: 0.2s; }
+.reels-root .float-nav .fn-wave i:nth-child(3) { --hi: 18px; animation-delay: 0.4s; }
+.reels-root .float-nav .fn-play.is-playing .fn-play-icon { display: none; }
+.reels-root .float-nav .fn-play.is-playing .fn-wave { display: inline-flex; }
+@media (prefers-reduced-motion: reduce) { .reels-root .float-nav .fn-wave i { animation: none; height: 14px; } }

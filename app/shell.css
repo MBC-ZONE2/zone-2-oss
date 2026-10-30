@@ -1,0 +1,229 @@
+/* ============================================================================
+   app/shell.css — 셸·공용 UI 「일점 지면」 규칙 (shell-ui 담당)
+
+   components/shell/*, components/ui/{press-label,ai-verified-label,badge,button}
+   components/threads/feed-header 가 import 한다. reels.css(홈덱 담당)를 건드리지
+   않기 위해 데스크탑 재생 원(.side-play)의 #fn-play 동등 규칙을 여기에 둔다.
+
+   문법: 종이 #f4f5f7 위 잉크 #111 / 제호·괘선 #1c2130 / 보조 #5b6170.
+   카드·라운드·그림자·유리·그라디언트 없음 — 원형은 재생 원·마커 점에만.
+   [결정 8] 데스크탑 좌측 레일이 검은 세계(#0b0d12)가 되면서 그 안에 사는 재생 도크도
+   검은 바닥 위 백색 활자다(레일 자체 배경은 app/reels.css ≥1100 블록).
+   ========================================================================== */
+
+/* ── 데스크탑 재생 원 .side-play — #fn-play(모바일 전용)와 같은 클래스 규칙 ──
+   [결정 2] 면 #f9a03f + 글리프 #0b0d12(9.4:1) — 모바일 #fn-play 와 같은 한 색.
+   .is-glow  : 글로우 1회(1.2s). "zone2:intro-done" / "zone2:fn-glow" 이벤트.
+   .is-playing + --progress(0~1) : 둘레 2px 진행 링 + 2초 호흡.
+   렌더는 components/reels/nav.tsx SideNav(SidePlayDock)가 전역 플레이어 컨텍스트로 직접 한다. */
+.side-play {
+  --progress: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  min-height: 56px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #f9a03f;
+  color: #0b0d12;
+  box-shadow: none;
+  text-decoration: none;
+  transition: none;
+}
+.side-play:active,
+.side-play.is-pressing {
+  background: #e08a26;
+}
+.side-play {
+  -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; touch-action: manipulation;
+}
+.side-play .side-play-icon {
+  width: 22px;
+  height: 22px;
+  margin-left: 2px;
+}
+.side-play.is-glow {
+  animation: side-play-glow 1.2s ease-out 1 both;
+}
+@keyframes side-play-glow {
+  0% {
+    box-shadow: 0 0 24px rgba(249, 160, 63, 0.65);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(249, 160, 63, 0);
+  }
+}
+/* 재생 중 — 원 바깥 2px 여백 뒤 2px 잉크 링(--progress 만큼 채움) */
+.side-play.is-playing::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  pointer-events: none;
+  border-radius: 50%;
+  /* 진행 링도 주황 — 검은 도크 위에서 원과 한 덩어리로 읽힌다 */
+  background: conic-gradient(
+    #f9a03f calc(var(--progress, 0) * 360deg),
+    rgba(249, 160, 63, 0.28) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+}
+.side-play.is-playing {
+  animation: side-play-breathe 2s ease-in-out infinite;
+}
+.side-play.is-playing.is-glow {
+  animation:
+    side-play-glow 1.2s ease-out 1 both,
+    side-play-breathe 2s ease-in-out infinite;
+}
+@keyframes side-play-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.97);
+  }
+}
+/* 주황 원은 검은 도크 위에서 스스로 윤곽을 갖는다(종이 시절의 잉크 링 1px 은 불필요).
+   고대비에서만 백색 1px 윤곽을 box-shadow 로 되살린다 — 이 파일 끝 고대비 블록. */
+.side-play::before {
+  content: none;
+}
+.side-play:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+  border-radius: 50%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .side-play.is-glow,
+  .side-play.is-playing,
+  .side-play.is-playing.is-glow {
+    animation: none;
+  }
+}
+/* 재생 중에는 ▶ 대신 3막대 파형(#fn-play .fn-wave 와 동일 규약) */
+.side-play .side-play-wave {
+  display: none;
+  align-items: center;
+  gap: 3px;
+  height: 20px;
+  color: #0b0d12;
+}
+.side-play .side-play-wave i {
+  display: block;
+  width: 3px;
+  height: 8px;
+  background: currentColor;
+  --hi: 20px;
+  animation: side-play-bar 0.8s ease-in-out infinite alternate;
+}
+.side-play .side-play-wave i:nth-child(2) { --hi: 14px; animation-delay: 0.2s; }
+.side-play .side-play-wave i:nth-child(3) { --hi: 18px; animation-delay: 0.4s; }
+.side-play.is-playing .side-play-icon { display: none; }
+.side-play.is-playing .side-play-wave { display: inline-flex; }
+@keyframes side-play-bar {
+  from { height: 4px; }
+  to { height: var(--hi, 20px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .side-play .side-play-wave i { animation: none; height: 14px; }
+}
+/* 레일 하단 재생 도크 — 검은 바닥(레일에서 상속) 위 1px #1c2130 괘선 + 주황 원 +
+   회차 활자(17px 700 백색 / 15px 보조 #c3c7d1). 카드·그림자 없음 */
+.side-play-dock {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 14px 0;
+  border-top: 1px solid #1c2130;
+}
+.side-play-dock .side-play-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: #f4f5f7;
+}
+.side-play-dock .side-play-text strong {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: keep-all;
+}
+.side-play-dock .side-play-text > span {
+  font-size: 15px;
+  color: #c3c7d1;  /* 검은 세계 위 보조 — 9.3:1 */
+  font-variant-numeric: tabular-nums;
+}
+/* 고대비 — 주황은 유지하고 원 둘레에 백색 1px, 도크 괘선도 백색 */
+html[data-contrast="high"] .side-play {
+  background: #f9a03f;
+  color: #0b0d12;
+  box-shadow: 0 0 0 1px #f4f5f7;
+}
+html[data-contrast="high"] .side-play-dock {
+  border-top-color: #f4f5f7;
+}
+
+/* ── 매체 마커 — 6px 도형에만 색. 고대비에서는 잉크(현재 글자색)로 ──────────
+   광역 ⋯ : 6px 보라 점 3개(#6706d3) / 기초 ▬ : 18×3px 분홍 토막(#e66bd2) */
+.press-mark {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.press-mark--macro {
+  gap: 3px;
+}
+.press-mark--macro > i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6706d3;
+}
+.press-mark--micro > i {
+  display: block;
+  width: 18px;
+  height: 3px;
+  background: #e66bd2;
+}
+html[data-contrast="high"] .press-mark--macro > i,
+html[data-contrast="high"] .press-mark--micro > i {
+  background: currentColor;
+}
+
+/* ── 'AI가 정리' 스탬프 — 분홍 필드 위 잉크 활자(9:1). 고대비: 백색 필드 위 검정 */
+.ai-stamp {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: #e66bd2;
+  color: #111111;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  border-radius: 0;
+  white-space: nowrap;
+}
+html[data-contrast="high"] .ai-stamp {
+  background: #f4f5f7;
+  color: #0b0d12;
+}
+
+/* ── 로딩 괘선 — 점선 = 아직 없음. 데이터가 도착한 실제 화면은 실선 ────── */
+.shell-rule-pending {
+  height: 0;
+  border: 0;
+  border-top: 1px dashed var(--line, #1c2130);
+}

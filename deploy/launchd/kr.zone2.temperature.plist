@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ZONE-2 온도 크론 — 15분마다. CRON_SECRET 을 채워라. -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>kr.zone2.temperature</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/curl</string>
+    <string>-s</string><string>-X</string><string>POST</string>
+    <string>http://localhost:3002/api/cron/temperature</string>
+    <string>-H</string><string>Authorization: Bearer __CRON_SECRET__</string>
+  </array>
+  <key>StartInterval</key><integer>900</integer>
+  <key>StandardErrorPath</key><string>/tmp/zone2-temperature.err</string>
+</dict>
+</plist>

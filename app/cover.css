@@ -1,0 +1,313 @@
+/* ==========================================================================
+   표지(Cover) + 잉크 점(InkDot) — 「일점(一點) 지면」 인트로 핸드오프.
+   components/home/cover.tsx · components/reels/ink-dot.tsx 가 import 한다.
+
+   색은 기획안 표의 hex 만: 백지 #ffffff · 종이 #f4f5f7(--paper) · 잉크 #111111(--ink)
+   · 제호 #1c2130(--accent/--line) · 보조 #5b6170(--sub) · 회색 #8a8f9c(--faint)
+   · 수은 #d90429→#ff6b5e(온도에만) · 광역 마커 #6706d3 · 기초 마커 #e66bd2.
+   카드·라운드·그림자·유리·그라디언트 없음(원형 = 잉크 점 뿐).
+   움직이는 것: 백색 레이어의 수렴(clip-path circle), ⑤ 문장의 굳음, 잉크 점의 이동.
+   지면 순서(검토의견 홈 1): 제호 → 날짜 → 인덱스 띠 한 줄 → 오늘 첫 크로스뷰 히어로 → 힌트·범례.
+   ========================================================================== */
+
+/* 표지(0번)에서는 상단 진행 바를 숨긴다 — visibility 로 숨겨 높이는 유지(레이아웃 점프 없음) */
+/* 표지에서는 종류·n/N·진행선만 숨기고 가운데 로고는 남긴다(2026-10-21) */
+.reels-root .reels-topbar.is-cover .topbar-kind,
+.reels-root .reels-topbar.is-cover .progress,
+.reels-root .reels-topbar.is-cover .topbar-line { visibility: hidden; }
+/* 표지 슬라이드 하단 여백 — 네비 바 64px + 28px 만(다른 슬라이드의 140px 보다 좁혀 히어로 자리를 낸다) */
+.reels-root .slide[data-kind="cover"] { padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+
+/* ── 표지 컨테이너 — 슬라이드를 세로로 꽉 채우고 본문은 위에서 시작 ─────────
+   position: static 이라 하단(.cover-foot)의 기준은 .slide(relative) 다. */
+.reels-root .cover {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  /* 제호 baseline ≈ 138px: 숨은 topbar(≈49) + 슬라이드 padding(40) + 28 + 25×0.84 */
+  padding-top: 28px;
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+@media (min-width: 768px) {
+  .reels-root .cover { padding-top: 8px; }
+}
+
+/* ── 백색 레이어 — 인트로 종료 프레임의 바닥(#ffffff). 네비 바(z 30) 위, 인트로(120) 아래.
+   play: 900ms · quick: 450ms 동안 #fn-play 원(--fx,--fy)으로 수렴한다. 첫 프레임부터
+   터치 가능해야 하므로 pointer-events 없음.
+   [결정 2] 착지점 #fn-play 는 이제 주황 원(#f9a03f) — 수렴하는 종이(백색)가 사라진 자리에
+   주황이 드러나면서 "여기를 누르면 들린다"가 인트로 끝에 한 번 더 각인된다. */
+.reels-root .cover-white {
+  position: fixed; inset: 0; z-index: 60;
+  background: #ffffff;
+  pointer-events: none;
+  --fx: 50vw; --fy: calc(100vh - 50px); --r0: 150vmax;
+}
+.reels-root .cover[data-phase="play"] .cover-white {
+  animation: cover-converge 900ms cubic-bezier(0.2, 0.8, 0.2, 1) 1 forwards;
+}
+.reels-root .cover[data-phase="quick"] .cover-white {
+  animation: cover-converge 450ms cubic-bezier(0.2, 0.8, 0.2, 1) 1 forwards;
+}
+/* 수렴 — 뷰포트 전체(원점에서 가장 먼 모서리 반지름) → 백색원 28px */
+@keyframes cover-converge {
+  from { clip-path: circle(var(--r0) at var(--fx) var(--fy)); }
+  to   { clip-path: circle(28px at var(--fx) var(--fy)); }
+}
+
+/* ── 인트로 5문장 — 캔버스 좌표를 그대로 fixed 로 놓는다(장식, aria-hidden). ────
+   line-height 1: cover.tsx 가 baseline 비율로 top 을 계산한다. transform-origin 좌상단:
+   scaleX 는 캔버스의 가로 압축(원점 left), scaleY(0) 은 위로 접힘. */
+.reels-root .cover-stmts {
+  position: fixed; inset: 0; z-index: 61;
+  pointer-events: none;
+  overflow: hidden;
+}
+.reels-root .cover-stmt {
+  position: fixed;
+  margin: 0; padding: 0;
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  transform-origin: 0 0;
+}
+/* play: 300~900ms — ①~④ 접힘, ⑤ 는 제호 자리(좌표·크기·색)로 굳음 */
+.reels-root .cover[data-phase="play"] .cover-stmt {
+  transition:
+    transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 300ms,
+    opacity 600ms ease 300ms,
+    top 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 300ms,
+    left 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 300ms,
+    font-size 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 300ms,
+    color 600ms ease 300ms;
+}
+
+/* ── 지면 본문 — 좌측 기준선(--rl-gutter). hold/play 동안은 보이지 않되 자리는 차지
+   (⑤ 문장의 착지 좌표를 실측해야 하므로 display:none 이 아니라 visibility). */
+.reels-root .cover-body { display: grid; gap: 8px; }
+.reels-root .cover-body > * { margin-left: var(--rl-gutter); margin-right: var(--rl-gutter); }
+@media (min-width: 768px) {
+  .reels-root .cover-body > * { max-width: var(--rl-maxw); }
+}
+.reels-root .cover[data-phase="hold"] .cover-body,
+.reels-root .cover[data-phase="play"] .cover-body { visibility: hidden; }
+
+/* 제호 — 인트로 ⑤ 문장이 굳은 것. 25px(폰) / 40px(데스크탑) 700, 잉크 제호색.
+   line-height 1 = 문장 span 과 같은 박스 → 좌상단이 일치하면 글리프가 일치한다. */
+.reels-root .cover-mast {
+  margin: 0 var(--rl-gutter); /* .cover-body > * 의 거터를 margin:0 이 덮어쓰던 버그 수정 */
+  font-size: 25px; line-height: 1; font-weight: 700;
+  letter-spacing: 0;
+  color: var(--accent);
+  white-space: nowrap;
+}
+@media (min-width: 768px) {
+  .reels-root .cover-mast { font-size: 40px; }
+}
+/* 날짜 · 판 — 메타 15px */
+.reels-root .cover-date {
+  margin: 4px var(--rl-gutter) 0; /* 거터 유지(제호와 같은 시작선) */ display: flex; flex-wrap: wrap; gap: 0 12px;
+  font-size: 15px; font-weight: 500; line-height: 1.5; color: var(--sub);
+  font-variant-numeric: tabular-nums;
+}
+.reels-root .cover-edition { color: var(--ink); font-weight: 700; }
+
+/* ── 인덱스 띠 — 마스트 아래 한 줄 15px "크로스뷰 40쌍 · 온도 뜨거움 65° · 오늘의 충북 8분".
+   각 항목이 링크(탭 타깃 44px = 22px 줄 + 상하 11px). 숫자는 700 tabular, 온도는 낱말이 앞. */
+.reels-root .cover-index {
+  margin-top: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+/* 버튼 문법 — 1px 잉크 테두리 사각형, 라벨 위·값 아래, 우하단 →. 라운드·면 없음 */
+.reels-root .cover-index-a {
+  position: relative; display: grid; gap: 2px; min-height: 56px; padding: 9px 26px 9px 10px;
+  border: 1px solid var(--ink); color: var(--ink); text-decoration: none; background: none; border-radius: 0;
+}
+.reels-root .cover-index-k { font-size: 13px; font-weight: 500; color: var(--sub); line-height: 1.3; white-space: nowrap; }
+.reels-root .cover-index-v { font-size: 15px; font-weight: 500; line-height: 1.3; white-space: nowrap; }
+.reels-root .cover-index-n { font-weight: 800; font-size: 18px; color: var(--ink); }
+.reels-root .cover-index-go { position: absolute; right: 9px; bottom: 8px; font-size: 15px; font-weight: 700; }
+.reels-root .cover-index-a:active { background: var(--ink); color: var(--paper); }
+.reels-root .cover-index-a:active .cover-index-k, .reels-root .cover-index-a:active .cover-index-n { color: var(--paper); }
+
+/* ── 오늘 첫 크로스뷰 히어로 — 사진(점묘) → 아이브로우+출처 → 두 줄 헤드라인 → AI 요약.
+   사진은 풀블리드, 높이는 뷰포트에 맞춰 줄어든다(작은 폰에서도 헤드라인이 먼저). */
+.reels-root .cover-body > .dot-img.cover-hero-img {
+  margin-left: 0; margin-right: 0; margin-top: 6px;
+}
+@media (min-width: 768px) {
+  .reels-root .cover-body > .dot-img.cover-hero-img { max-width: none; }
+}
+/* 사진 높이 = 뷰포트 − 나머지 지면(제호·날짜·띠·헤드라인 2줄·요약 2줄·힌트·범례 ≈ 580px).
+   보통 폰(760~844)에서 180~260px, 짧은 폰은 110px 바닥. 슬라이드는 min-height 라 넘치면 덱이 조금 스크롤 */
+.reels-root .dot-img.cover-hero-h {
+  height: clamp(110px, calc(100dvh - 620px - var(--now-line, 0px) - env(safe-area-inset-bottom, 0px)), 300px);
+}
+.reels-root .cover-hero-k {
+  margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
+  font-size: 13px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--sub); line-height: 1.4;
+}
+.reels-root .cover-hero-src { display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0; }
+/* 두 줄 헤드라인 — 26px/1.3, 광역·기초 같은 굵기(700). 마커(⋯/▬)만 다르다 */
+.reels-root .cover-hero-head {
+  margin-top: 0; display: grid; gap: 2px;
+  font-size: 26px; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em;
+  color: var(--ink); text-wrap: balance;
+}
+.reels-root .cover-hero-link { display: grid; gap: 2px; color: inherit; text-decoration: none; }
+.reels-root .cover-hero-link:active .cover-hero-text { text-decoration: underline; text-underline-offset: 4px; }
+.reels-root .cover-hero-line {
+  display: grid; grid-template-columns: 24px 1fr; column-gap: 8px; align-items: start;
+}
+.reels-root .cover-hero-line.plain { grid-template-columns: 1fr; }
+.reels-root .cover-hero-text { font-weight: 700; }
+.reels-root .cover-hero-line .sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+/* AI 요약 한 문장 — 본문 17px, 2줄까지 */
+.reels-root .cover-hero-sum {
+  margin-top: 0; font-size: 17px; line-height: 1.6; color: var(--ink);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
+
+/* ── 짧은 세로(아이폰 Safari 툴바가 보일 때 ≈664px, SE·mini ≈548px)와 하단 띠(지금 읽는 단락·설치 안내)
+   — 표지가 스냅 칸보다 길어지면 마지막 두 줄(후원 표기·범례)이 고정 네비 밑으로 밀려 "겹쳐" 보였다
+   (2026-10-21 대표 보고). 사진은 위 clamp 가 줄이고, 그래도 모자라면 넘김 힌트 → 요약 1줄 → 사진 순으로 양보한다.
+   실측(390px 폭): 사진 뺀 표지+여백 = 598px. 664px 에선 아래 규칙으로 611px, 548px 에선 385px. */
+html[data-now-line] .reels-root .slide[data-kind="cover"],
+html[data-install-band] .reels-root .slide[data-kind="cover"] {
+  padding-bottom: calc(92px + var(--now-line, 0px) + env(safe-area-inset-bottom, 0px));
+}
+html[data-now-line] .reels-root .cover-hint,
+html[data-install-band] .reels-root .cover-hint { display: none; }
+@media (max-height: 720px) {
+  .reels-root .slide[data-kind="cover"] { padding-top: calc(16px + env(safe-area-inset-top, 0px)); }
+  .reels-root .cover { padding-top: 12px; }
+  .reels-root .cover-hint { display: none; }
+  .reels-root .cover-hero-sum { -webkit-line-clamp: 1; }
+}
+@media (max-height: 640px) {
+  .reels-root .cover-body > .dot-img.cover-hero-img { display: none; }
+}
+
+/* ── 하단 — 괘선 아래 넘김 힌트 + 첫 방문 범례. 표지 플렉스 열의 맨 아래(margin-top:auto)에
+   앉아 히어로가 길어져도 겹치지 않는다. play 경로에서는 1200ms(done) 에 찍힌다. */
+.reels-root .cover-foot {
+  margin: auto var(--rl-gutter) 0;
+  padding-top: 10px; padding-bottom: 4px;
+  border-top: 1px solid var(--line);
+  display: grid; gap: 6px;
+}
+@media (min-width: 768px) {
+  .reels-root .cover-foot { max-width: var(--rl-maxw); }
+}
+.reels-root .cover[data-phase="hold"] .cover-foot,
+.reels-root .cover[data-phase="play"] .cover-foot,
+.reels-root .cover[data-phase="print"] .cover-foot { visibility: hidden; }
+.reels-root .cover-hint { margin: 0; font-size: 15px; font-weight: 500; color: var(--sub); }
+.reels-root .cover-funder { padding-top: 4px; }
+.reels-root .cover-hint .arr { display: inline-block; animation: none; }
+
+/* 첫 방문 1줄 안내 "⋯ 방송 · ▬ 지면" — 마커는 6px 도형에만 색 */
+.reels-root .cover-guide {
+  margin: 0; display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 500; color: var(--sub); line-height: 1.4;
+  white-space: nowrap; /* 375px 폭에서 "방송 · MBC충북"이 두 줄로 꺾이던 것 */
+}
+/* 320px·큰 글자에서는 글이 말줄임되고 닫기 버튼(44px)은 자리를 지킨다 */
+.reels-root .cover-guide > span:not(.cover-guide-m) { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.reels-root .cover-guide-m { display: inline-block; flex: 0 0 auto; }
+/* ⋯ 광역 마커 — 6px 잉크 점 3개(그라디언트 없이 실제 원 3개) */
+.reels-root .cover-guide-m.macro { display: inline-flex; gap: 2px; }
+.reels-root .cover-guide-m.macro i {
+  display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--macro);
+}
+.reels-root .cover-guide-m.micro { width: 18px; height: 3px; background: var(--micro); }
+.reels-root .cover-guide-x {
+  margin-left: auto; flex: 0 0 auto;
+  width: 44px; height: 44px; margin-top: -10px; margin-bottom: -10px;
+  border: 0; background: none; border-radius: 0; padding: 0;
+  font-size: 22px; line-height: 1; color: var(--sub); cursor: pointer;
+}
+
+/* ── 잉크 점 — 우측 레일. 읽는 자리(index/total) + 현재 사안의 온도(크기·색). ────
+   button 44×44(탭 타깃) 안에 점(::before)을 그린다. 점의 오른쪽 가장자리 = 12px. */
+.reels-root .ink-dot {
+  position: fixed; z-index: 20;
+  --ink-size: 24px; --ink-color: var(--faint); --ink-ratio: 0;
+  width: 44px; height: 44px;
+  right: calc(12px + var(--ink-size) / 2 - 22px);
+  top: calc(96px + (100dvh - 192px) * var(--ink-ratio) - 22px);
+  margin: 0; padding: 0; border: 0; border-radius: 0;
+  background: none; box-shadow: none;
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition:
+    top 350ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    right 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.reels-root .ink-dot::before {
+  content: ""; grid-area: 1 / 1;
+  width: var(--ink-size); height: var(--ink-size);
+  border-radius: 50%;
+  background: var(--ink-color);
+  transition:
+    width 350ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 350ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 350ms ease;
+}
+.reels-root .ink-dot[data-band="calm"]     { --ink-size: 24px; --ink-color: var(--faint); }
+.reels-root .ink-dot[data-band="mild"]     { --ink-size: 26px; --ink-color: var(--accent); }
+.reels-root .ink-dot[data-band="warm"]     { --ink-size: 28px; --ink-color: #ff6b5e; }
+.reels-root .ink-dot[data-band="hot"]      { --ink-size: 30px; --ink-color: #d90429; }
+.reels-root .ink-dot[data-band="very-hot"] { --ink-size: 32px; --ink-color: #d90429; }
+/* 매우 뜨거움 — 점 바깥 4px 에 1px 링 */
+.reels-root .ink-dot[data-band="very-hot"]::after {
+  content: ""; grid-area: 1 / 1;
+  width: calc(var(--ink-size) + 8px); height: calc(var(--ink-size) + 8px);
+  border-radius: 50%;
+  border: 1px solid #d90429;
+}
+/* 점 왼쪽의 온도 라벨 — 13px 700 잉크, 표 숫자. 점의 뜻(공론 온도)을 글자로 보강 */
+.reels-root .ink-dot-t {
+  position: absolute; right: calc(100% - 4px); top: 50%; transform: translateY(-50%);
+  font-size: 13px; font-weight: 700; line-height: 1; letter-spacing: 0;
+  font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
+}
+.reels-root .reels-viewport[data-world="dark"] .ink-dot-t { color: #f4f5f7; }
+.reels-root .ink-dot:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 0; }
+.reels-root .ink-dot[hidden] { display: none; }
+@media (min-width: 1100px) {
+  .reels-root .ink-dot { display: none; } /* 데스크탑 보드는 자체 레일 */
+}
+
+/* ── 큰글씨 모드 — 표지 문장(이음 전용)은 인트로 크기 유지, 지면은 앱 스케일 ───── */
+html[data-font-size="large"] .reels-root .cover-mast { font-size: 30px; }
+html[data-font-size="large"] .reels-root .cover-date,
+html[data-font-size="large"] .reels-root .cover-index,
+html[data-font-size="large"] .reels-root .cover-hint,
+html[data-font-size="large"] .reels-root .cover-guide { font-size: 18px; }
+html[data-font-size="large"] .reels-root .cover-hero-k { font-size: 15px; }
+html[data-font-size="large"] .reels-root .cover-hero-head { font-size: 30px; }
+html[data-font-size="large"] .reels-root .cover-hero-sum { font-size: 20px; }
+html[data-font-size="large"] .reels-root .dot-img.cover-hero-h {
+  height: clamp(110px, calc(100dvh - 660px - var(--now-line, 0px) - env(safe-area-inset-bottom, 0px)), 300px);
+}
+
+/* ── 고대비 — 지면 변수는 reels.css 가 검은 세계로 뒤집는다. 수은은 #ff6b5e(7:1) ── */
+html[data-contrast="high"] .reels-root .ink-dot[data-band="warm"],
+html[data-contrast="high"] .reels-root .ink-dot[data-band="hot"],
+html[data-contrast="high"] .reels-root .ink-dot[data-band="very-hot"] { --ink-color: #ff6b5e; }
+html[data-contrast="high"] .reels-root .ink-dot[data-band="very-hot"]::after { border-color: #ff6b5e; }
+
+/* ── 모션 최소화 — 표지는 항상 none 경로(연출 없음). 혹시 남는 애니메이션도 끊는다 ── */
+@media (prefers-reduced-motion: reduce) {
+  .reels-root .cover-white { animation: none; clip-path: circle(28px at var(--fx) var(--fy)); }
+  .reels-root .cover-stmt { transition: none; }
+  .reels-root .ink-dot, .reels-root .ink-dot::before { transition: none; }
+}

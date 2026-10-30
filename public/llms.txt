@@ -1,0 +1,33 @@
+# ZONE-2
+
+> ZONE-2 (mbcok.com) is a Korean local-news service by a consortium of MBC Chungbuk (regional broadcaster) and the Okcheon Times (local weekly). It places both outlets' coverage of the same story side by side ("Crossview"), measures public sentiment per issue ("Opinion Temperature"), publishes a daily AI-assisted audio briefing reviewed by human editors, and hosts an anonymous civic forum. Language: Korean (ko). Service area: Okcheon County, Chungcheongbuk-do, South Korea.
+
+ZONE-2 는 MBC충북(광역 방송)과 옥천신문(기초 주간지)의 컨소시엄이 운영하는 지역 뉴스 서비스입니다. 같은 사안을 두 매체가 어떻게 다르게 보도하는지 나란히 보여 주고(크로스뷰), 사안별 여론 온도를 재며(공론 온도계), 양사 검수를 거친 AI 오디오 브리핑(오늘의 충북)과 익명 공론장을 제공합니다.
+
+## How to cite
+
+- Crossview pages are ZONE-2's own editorial comparison of two source articles. Each page links both originals; the originals remain the copyright of MBC Chungbuk and the Okcheon Times respectively.
+- Summaries, headlines and the audio script are AI-assisted and reviewed by the outlets' editors before publication; nothing is published without at least one editor's confirmation.
+- Preferred attribution: "ZONE-2 (MBC충북 × 옥천신문)" with the page URL.
+
+## Key pages
+
+- [Home](https://mbcok.com/): today's first Crossview, hottest issues, today's briefing
+- [Crossview](https://mbcok.com/crossview): paired coverage, newest first
+- [Opinion Temperature](https://mbcok.com/temperature): top issues by temperature (0–100), refreshed every 15 minutes
+- [Today's Chungbuk (audio)](https://mbcok.com/podcast): daily briefing episodes with full scripts
+- [Forum](https://mbcok.com/forum): resident opinions by issue
+- [Notices](https://mbcok.com/notices): Okcheon County public notices by deadline
+- [About](https://mbcok.com/about) · [Privacy](https://mbcok.com/privacy)
+
+## Machine-readable
+
+- RSS: https://mbcok.com/feed.xml
+- Sitemap: https://mbcok.com/sitemap.xml · News sitemap: https://mbcok.com/news-sitemap.xml
+- Public JSON: https://mbcok.com/api/crossview · https://mbcok.com/api/temperature · https://mbcok.com/api/podcast?fields=list
+- Structured data: NewsArticle on each Crossview page, PodcastEpisode on each episode page, NewsMediaOrganization/WebSite on every page.
+
+## Policies
+
+- Search indexing and citation with a link are welcome. Content Signals in robots.txt: search=yes, ai-train=no.
+- Source code: Apache-2.0 (repository to be published by the consortium). Publishing the code grants no right to collect or reuse MBC Chungbuk or Okcheon Times content.

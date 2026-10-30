@@ -1,0 +1,653 @@
+@import "tailwindcss";
+
+/* ============================================================================
+ * ZONE-2 디자인 토큰 — 「일점(一點) 지면」(design/ilzeom)
+ *
+ * 인트로 종료 프레임(백색 + 좌상단 5문장)을 홈이 물려받는 종이·잉크·괘선 체계.
+ * 색·타이포·온도는 전부 CSS 변수(토큰)로 정의하고 유틸리티에 연결한다.
+ * 카드·라운드·그림자·유리·그라디언트 금지 — 지면 위 허용 요소는 괘선·점묘·원 셋.
+ *
+ * 접근성 1급 요건(옥천 고령화율 37%):
+ *   - html[data-font-size="large"] : 큰 글씨 모드 (타이포 스케일 승격)
+ *   - html[data-contrast="high"]   : 고대비 모드 (흑배경/백텍스트)
+ *   - prefers-reduced-motion       : 애니메이션 사실상 정지(1ms)
+ *
+ * 기존 페이지 호환: --color-background / --color-foreground 변수명은 유지하고
+ * 값만 라이트 팔레트로 교체한다. (bg-background / text-foreground 등 그대로 동작)
+ * ========================================================================== */
+
+/* 서체 — Pretendard Variable 자체 호스팅(인트로 캔버스 FONT 스택과 동일 1순위).
+ * 가변 폰트 1파일로 45~920 굵기를 전부 덮는다. next/font(Noto Sans KR·Geist)는
+ * 폴백으로만 남긴다.
+ * 파일은 KS X 1001 한글 2,350자 + 라틴·문장부호·기호로 서브셋한 것(약 470KB, 원본 2MB).
+ * 빠진 희귀 음절은 Noto Sans KR 폴백으로 그려진다. 재생성: pyftsubset PretendardVariable.woff2
+ * --text-file=<KS X 1001 음절> --unicodes=U+0020-007E,U+00A0-00FF,U+2010-2027,U+2030-205E,
+ * U+20A9,U+2190-2199,U+2200-22FF,U+25A0-25FF,U+2600-26FF,U+3000-303F,U+3131-318E,U+FF01-FF60,U+FFE6
+ * --flavor=woff2 --layout-features='*' */
+@font-face {
+  font-family: "Pretendard";
+  src:
+    url("/fonts/PretendardVariable.woff2") format("woff2-variations"),
+    url("/fonts/PretendardVariable.woff2") format("woff2");
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme inline {
+  /* 기존 호환 토큰 (값만 종이·잉크 팔레트) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* 서피스 · 브랜드 · 액션 */
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-fg);
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+
+  /* 라인 · 보조 텍스트 */
+  --color-line: var(--line);
+  --color-muted-foreground: var(--muted-foreground);
+
+  /* 상태색 (텍스트 / 옅은 배경) */
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-micro: var(--micro);
+  --color-micro-bg: var(--micro-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+
+  /* 공론 온도 5구간 색 (기준안 03 §6) */
+  --color-temp-1: var(--temp-1);
+  --color-temp-2: var(--temp-2);
+  --color-temp-3: var(--temp-3);
+  --color-temp-4: var(--temp-4);
+  --color-temp-5: var(--temp-5);
+
+  /* 폰트 — Pretendard 단일 서체(본문·제호 모두). 폴백은 시스템 한글 서체(next/font 제거 — 속도). 이전 --font-heading(Noto)과
+   * Geist 는 next/font 가 body 에 주입하는 폴백. 라틴 최종 폴백은 system-ui. */
+  --font-sans: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-display: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+
+  /* 라운드·그림자 전면 0 — 지면은 직각이다. rounded-full(원형)만 예외로 남는다. */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
+  --shadow: 0 0 #0000;
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-2xl: 0 0 #0000;
+
+  /* 타이포 스케일 (large 모드에서 --fs-* 오버라이드로 승격).
+   * display/h1 은 볼드 산세 덱 헤딩 기준으로 줄간을 조인다. */
+  --text-display: var(--fs-display);
+  --text-display--line-height: 1.2;
+  --text-h1: var(--fs-h1);
+  --text-h1--line-height: 1.25;
+  --text-h2: var(--fs-h2);
+  --text-h2--line-height: 1.4;
+  --text-body: var(--fs-body);
+  --text-body--line-height: 1.6;
+  --text-sm: var(--fs-sm);
+  --text-sm--line-height: 1.5;
+  --text-xs: var(--fs-xs);
+  --text-xs--line-height: 1.5;
+
+  /* 애니메이션 */
+  --animate-shimmer: zone2-shimmer 1.6s ease-in-out infinite;
+}
+
+:root {
+  /* --- 색 토큰 (일점 지면: 종이 + 잉크 + 괘선) --- */
+  --background: #f4f5f7; /* 종이 — 앱 기본 바닥(인트로 BG) */
+  --surface: #f4f5f7; /* 서피스도 종이 — 카드 면 구분 없음 */
+  --surface-muted: #e9eaee; /* 옅은 보조 면(입력·비활성) */
+  --foreground: #111111; /* 잉크 본문 — 18.4:1 on 종이 */
+  --muted-foreground: #5b6170; /* 보조 잉크 — 메타·비교집합 낱말, 5.3:1 */
+  --line: #1c2130; /* 괘선 1px — 잉크 제호색(인트로 INK) */
+
+  --brand: #6706d3; /* 광역 마커 전용(⋯ 도트 3개, 6px) — 텍스트·면 금지 */
+  --brand-fg: #ffffff; /* 브랜드 위 텍스트 */
+  --action: #111111; /* 액션 = 잉크(링크·버튼·포커스) */
+  --action-hover: #1c2130; /* 액션 hover — 잉크 제호 */
+  --quote: #1c2130; /* 인용부/강조어 — 잉크 제호 */
+
+  --success: #167a4a;
+  --success-bg: #d1fae5;
+  --warning: #f9a03f; /* 마감 — 공고 D-day 점·필드(잉크 글자, 8:1) */
+  --warning-bg: #fef3c7;
+  --micro: #e66bd2; /* 기초 마커 · AI 스탬프 전용(▬ 괘선 토막 18×3px) */
+  --micro-bg: #f4f5f7; /* 기초 면은 종이 — 색 면 없음 */
+  --danger: #9b1c1c;
+  --danger-bg: #fee2e2;
+
+  /* 공론 온도 5구간 (잠잠 → 미온 → 보통 → 뜨거움 → 매우 뜨거움) — 기준안 03 §6.
+   * 배지 잉크는 고정 다크(#1a2233)라 밝은 파스텔로 두어 라이트/고대비 모두 대비 확보. */
+  --temp-1: #93c5fd; /* 청색 · 잠잠 */
+  --temp-2: #86efac; /* 연두 · 미온 */
+  --temp-3: #fde047; /* 황색 · 보통 */
+  --temp-4: #fdba74; /* 주황 · 뜨거움 */
+  --temp-5: #fca5a5; /* 적색 · 매우 뜨거움 */
+
+  /* 온도 잉크 변형 — 밝은 배경 위 "텍스트"용 진한 톤 (기상도 대형 숫자 등).
+   * 웜 화이트 대비 전부 ≥5:1 (대형 텍스트 기준 3:1 여유 통과). */
+  --temp-1-ink: #1e40af;
+  --temp-2-ink: #3f6212;
+  --temp-3-ink: #854d0e;
+  --temp-4-ink: #9a3412;
+  --temp-5-ink: #b91c1c;
+
+  /* --- 타이포 스케일 (기본) — 세리프 헤드라인 상향 --- */
+  --fs-display: 34px;
+  --fs-h1: 24px;
+  --fs-h2: 17px;
+  --fs-body: 16px;
+  --fs-sm: 14px;
+  --fs-xs: 12px;
+
+  /* --- 스켈레톤 shimmer 색 (테마 연동) --- */
+  --sk-base: color-mix(in oklab, var(--foreground) 9%, transparent);
+  --sk-highlight: color-mix(in oklab, var(--foreground) 3%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+ * 큰 글씨 모드 — 타이포 스케일 전체 승격 (24/20/17/16/14/12 → 28/24/21/20/17/14)
+ * ------------------------------------------------------------------------- */
+html[data-font-size="large"] {
+  --fs-display: 40px;
+  --fs-h1: 30px;
+  --fs-h2: 21px;
+  --fs-body: 20px;
+  --fs-sm: 17px;
+  --fs-xs: 14px;
+}
+
+/* ---------------------------------------------------------------------------
+ * 고대비 모드 — 흑배경/백텍스트/밝은 링크. 상태색은 어두운 배경 위에서 읽히도록
+ * 밝은 전경색 + 짙은 배경으로 교체한다.
+ * ------------------------------------------------------------------------- */
+html[data-contrast="high"] {
+  /* 검은 세계 #0b0d12 위 #f4f5f7(18:1). 마커도 잉크(백색)화 — 자리와 라벨로만 구분 */
+  --background: #0b0d12;
+  --surface: #0b0d12;
+  --surface-muted: #1c2130;
+  --foreground: #f4f5f7;
+  --muted-foreground: #f4f5f7;
+  --line: #f4f5f7;
+
+  /* 검은 세계 위 로고(text-brand)는 백색. brand-fg 는 brand/action 면 위 글자라
+   * 검은 세계색. 링크/액션은 검은 세계 액센트 파랑(#7ea4ff, 8.4:1). */
+  --brand: #f4f5f7;
+  --brand-fg: #0b0d12;
+  --action: #7ea4ff; /* 검은 세계 링크 */
+  --action-hover: #b18cff;
+  --quote: #f4f5f7; /* 검은 세계 위 인용부 — 백색 */
+
+  --success: #4ade80;
+  --success-bg: #052e16;
+  --warning: #f9a03f; /* 마감 주황 — 검은 세계 위 9:1 */
+  --warning-bg: #1c2130;
+  --micro: #f4f5f7; /* 기초 마커 잉크화 */
+  --micro-bg: #0b0d12;
+  --danger: #fca5a5;
+  --danger-bg: #450a0a;
+
+  /* 온도 5색 — 흑배경 위 가독을 위해 더 밝은 틴트로. 배지 잉크는 여전히 다크. */
+  --temp-1: #bfdbfe; /* 청색 */
+  --temp-2: #bbf7d0; /* 연두 */
+  --temp-3: #fef08a; /* 황색 */
+  --temp-4: #fed7aa; /* 주황 */
+  --temp-5: #fecaca; /* 적색 */
+
+  /* 흑배경에서는 밝은 틴트 자체가 텍스트 잉크 역할 (대비 자동 확보) */
+  --temp-1-ink: var(--temp-1);
+  --temp-2-ink: var(--temp-2);
+  --temp-3-ink: var(--temp-3);
+  --temp-4-ink: var(--temp-4);
+  --temp-5-ink: var(--temp-5);
+
+  --sk-base: color-mix(in oklab, var(--foreground) 18%, transparent);
+  --sk-highlight: color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+ * 고대비 — 홈 히어로 좌측(광역) 필드 반전.
+ * 고대비에서는 두 필드가 모두 흑배경+백텍스트가 되어 '대비' 정체성이 사라지므로,
+ * 좌측 광역 필드만 흰 배경 + 굵은 잉크 프레임(4px)으로 반전해 좌우 구분을 유지한다.
+ * (우측 기초 필드는 기본 고대비 흑배경/백텍스트 유지 → 좌: 백/흑, 우: 흑/백)
+ * ------------------------------------------------------------------------- */
+html[data-contrast="high"] .z2-hero-macro {
+  background: #f4f5f7 !important;
+  border: 4px solid #0b0d12;
+  color: #0b0d12 !important;
+}
+html[data-contrast="high"] .z2-hero-macro :where(h1, h2, h3, p, span, a, strong) {
+  color: #0b0d12 !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * 베이스 스타일
+ * ------------------------------------------------------------------------- */
+html {
+  /* 앱 감각: 당겨서 새로고침·바운스 스크롤 차단, 가로 스크롤 방지 */
+  overscroll-behavior-y: none;
+  /* PWA(홈 화면 실행) 하단 안전 영역에 흰 띠가 비치던 문제 — 문서 바탕을 하단 검은 네비와 같은 색으로.
+     본문(body/.reels-viewport/.reels-page)이 화면을 꽉 채우므로 평소에는 보이지 않는다 */
+  background: #0b0d12;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  background: var(--background);
+  color: var(--foreground);
+  min-height: 100dvh;
+  /* Pretendard 1순위(--font-sans 안에 폴백 포함) */
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  overscroll-behavior-y: none;
+  overflow-x: hidden;
+  /* 회색 탭 하이라이트 제거 → 네이티브 터치 느낌 */
+  -webkit-tap-highlight-color: transparent;
+  /* iOS 홈스크린 앱에서 텍스트 롱프레스 선택 억제(입력·본문은 아래에서 예외) */
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* 읽고 복사·입력해야 하는 곳은 선택 허용 */
+input,
+textarea,
+[contenteditable],
+p,
+h1, h2, h3, h4,
+li,
+.cv-news-summary,
+article {
+  -webkit-user-select: text;
+  user-select: text;
+}
+/* 터치 지연 제거·의도적 제스처만 */
+a, button, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* 전역 포커스 링 — 2px 액션 블루, offset 2px. 컴포넌트가 outline-none 을
+ * 명시하면(:where 0-specificity) 컴포넌트 스타일이 우선한다. */
+:where(a, button, [role="button"], input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--action) 30%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+ * 괘선(rule) 시스템 — 신문 지면의 구획선. 카드 그림자 대신 괘선으로 위계를
+ * 만든다. 색은 토큰(--foreground 잉크 / --line 헤어라인)을 써서 고대비 모드
+ * (흑배경/백선)에서도 대비가 유지된다.
+ *   - .z2-rule-section : 섹션 상단 굵은 괘선(2px 잉크)
+ *   - .z2-rule-double  : 마스트헤드 이중 괘선(3px double 잉크)
+ *   - .z2-hairline     : 1px 헤어라인 구획(투명 배경)
+ * ------------------------------------------------------------------------- */
+.z2-rule-section {
+  border-top: 2px solid var(--foreground);
+}
+.z2-rule-double {
+  border-bottom: 3px double var(--foreground);
+}
+.z2-hairline {
+  border: 1px solid var(--line);
+}
+
+/* ---------------------------------------------------------------------------
+ * 카드 시스템 → 괘선 블록.
+ *
+ * 카드(라운드·그림자)는 폐기한다. .z2-card 는 상단 괘선 1px 로 시작하는 블록,
+ * .z2-pill 은 대문자 자간 텍스트 라벨이다. 클래스명은 기존 컴포넌트 호환을 위해
+ * 유지하고 값만 지면 문법으로 바꾼다. 원형(999px)은 --radius-pill 로만 남긴다.
+ * ------------------------------------------------------------------------- */
+:root {
+  --radius-card: 0;
+  --radius-pill: 999px;
+  --shadow-card: none;
+  --shadow-card-hover: none;
+}
+
+.z2-card {
+  background: var(--surface);
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* 상호작용 블록 — 떠오르지 않는다. 포커스 링(전역)만으로 상태를 알린다. */
+.z2-card-lift {
+  transition: none;
+}
+.z2-card-lift:hover,
+.z2-card-lift:focus-within {
+  box-shadow: none;
+  transform: none;
+}
+
+.z2-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 0;
+  padding: 0;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* 고대비: 괘선을 백색 잉크로 */
+html[data-contrast="high"] .z2-card {
+  border-top-color: var(--foreground);
+  box-shadow: none;
+}
+html[data-contrast="high"] .z2-card-lift:hover,
+html[data-contrast="high"] .z2-card-lift:focus-within {
+  transform: none;
+  outline: 2px solid var(--action);
+}
+
+/* 모션 최소화 — 애니메이션/트랜지션 사실상 정지 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 스켈레톤 shimmer keyframes */
+@keyframes zone2-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * 오버레이/다이얼로그/바텀시트 진입·퇴장 애니메이션 (F6 · Radix Dialog)
+ * prefers-reduced-motion 에서는 상단 규칙이 duration 을 1ms 로 낮춘다.
+ * ------------------------------------------------------------------------- */
+@keyframes zone2-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes zone2-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes zone2-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes zone2-sheet-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes zone2-dialog-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* ===========================================================================
+ * 인터랙션 (디자인 v2.1 · 에디토리얼 절제 모션)
+ *
+ * 모든 모션은 목적 있는 절제된 전환(150~300ms·등장 ease-out)이며,
+ * prefers-reduced-motion 시 규칙 자체가 정의되지 않아 완전히 비활성된다.
+ * 상단의 전역 reduce 블록(transition/animation ≈1ms)에 더해, 아래 효과들은
+ * @media (prefers-reduced-motion: no-preference) 로 게이트해 잔여 모션도 없앤다.
+ * ========================================================================= */
+
+/* --- B1. 시그니처 "두 시선의 줄다리기" --------------------------------------
+ * hover 가능·정밀 포인터·모션 허용·데스크탑 폭에서만 활성. 필드 hover/focus 시
+ * flex-grow 1→1.4 로 확장(반대편은 자동 축소)하고 발췌가 2→4줄로 드러난다.
+ * 터치 기기·reduced-motion 에서는 아래 규칙이 적용되지 않아 50:50·2줄로 고정된다.
+ * (중앙 "같은 사안" 축은 w-0 라 두 필드 사이 이음매를 따라 자연스럽게 이동한다.) */
+.z2-tug-excerpt {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+  .z2-tug {
+    /* flex-grow(확장)와 배경 틴트를 함께 전환 — shorthand 라 색 전환도 포함해야 한다 */
+    transition:
+      flex-grow 300ms ease-out,
+      background-color 200ms ease-out;
+  }
+  .z2-tug:hover,
+  .z2-tug:focus-visible {
+    flex-grow: 1.4;
+  }
+  .z2-tug:hover .z2-tug-excerpt,
+  .z2-tug:focus-visible .z2-tug-excerpt {
+    -webkit-line-clamp: 4;
+    animation: z2-tug-reveal 200ms ease-out;
+  }
+}
+@keyframes z2-tug-reveal {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --- B2. 히어로 헤드라인 등장 (1회성 slide-up 12px + fade 400ms) ----------- */
+@keyframes z2-hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .z2-anim-hero-in {
+    animation: z2-hero-in 400ms ease-out both;
+  }
+}
+
+/* --- B3. 세리프 제목 링크 underline 좌→우 성장 (background-size, 220ms) ------
+ * 링크(.group) hover/focus-visible 또는 제목 자신의 hover/focus-visible 시 성장.
+ * reduced-motion 에서는 규칙 미정의 → underline 없이 색 변화만 남는다. */
+@media (prefers-reduced-motion: no-preference) {
+  .z2-underline-grow {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    transition: background-size 220ms ease-out;
+  }
+  .group:hover .z2-underline-grow,
+  .group:focus-visible .z2-underline-grow,
+  .z2-underline-grow:hover,
+  .z2-underline-grow:focus-visible {
+    background-size: 100% 1px;
+  }
+}
+
+/* --- B4. 라이브 펄스 — 온도 값이 실제 변한 행에 1회 옅은 하이라이트 페이드 ----
+ * 표시 레이어에서만 트리거(폴링 로직 무변경). pulseKey 변경 시 remount 로 재생.
+ * reduced-motion 에서는 UI 가 오버레이 자체를 렌더하지 않는다. */
+.z2-temp-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  background-color: var(--surface-muted);
+  pointer-events: none;
+  animation: z2-temp-pulse 600ms ease-out forwards;
+}
+@keyframes z2-temp-pulse {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ── 재단 지원 표기(components/ui/funder-credit) ─────────────────────────────
+   CI 는 제3자 상표 — 반전·재채색 없이 원본 PNG 그대로. 검은 세계에서는 종이색 띠(.funder--band) 위에. */
+.funder { margin: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; font-weight: 500; color: var(--sub, #5b6170); line-height: 1.4; }
+.funder-ci-wrap { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; } /* CI + 조사 "의" 한 덩어리 */
+.funder-ci { display: block; height: 30px; width: auto; }
+.funder--band { background: #f4f5f7; color: #5b6170; padding: 10px 16px; }
+@media (min-width: 768px) { .funder-ci { height: 40px; } }
+html[data-font-size="large"] .funder { font-size: 15px; }
+
+/* ── 사이트 푸터(components/site-footer) — 1px 괘선 위 13px 보조색 세 줄. 상자·면 없음 ───────── */
+.sf { position: relative; z-index: 1; margin-top: 48px; color: var(--sub, #5b6170); font-size: 13px; line-height: 1.6; } /* 온도계(.tw) 의 바닥 장식(::after)이 아래로 번져 푸터를 덮던 것 — 푸터를 그 위에 */
+.sf-in { border-top: 1px solid var(--line, #1c2130); padding: 18px 0 8px; display: grid; gap: 8px; }
+.sf-brand { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.sf-logo { display: block; height: 16px; width: auto; }
+.sf-consortium { font-weight: 700; color: var(--ink, #111111); }
+.sf-consortium a { color: inherit; text-decoration: none; }
+.sf-consortium a:hover, .sf-consortium a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+.sf-funder { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sf-funder-ci { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+.sf-kpf { display: block; height: 28px; width: auto; }
+.sf-links { margin: 0; display: flex; flex-wrap: wrap; gap: 0 16px; }
+.sf-links a { color: var(--ink, #111111); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; padding: 6px 0; display: inline-block; }
+.sf-visits { margin: 0; display: flex; flex-wrap: wrap; gap: 0 10px; min-height: 1.6em; }
+.sf-visits b { font-weight: 700; color: var(--ink, #111111); font-variant-numeric: tabular-nums; }
+.sf-visits-note { color: var(--sub, #5b6170); }
+.sf-legal { margin: 0; }
+/* 검은 세계(홈 끝 슬라이드) — 종이색 띠 위에. 색은 띠 안에서 고정값(세계 토큰이 뒤집혀 있어서) */
+.sf--dark { margin-top: 24px; }
+.sf--dark .sf-in { background: #f4f5f7; border-top: 0; padding: 16px 20px 12px; color: #5b6170; }
+.sf--dark .sf-consortium, .sf--dark .sf-links a, .sf--dark .sf-visits b { color: #111111; }
+/* 홈 아닌 화면: 본문 열 안, 좌측 기준선·오른쪽은 떠 있는 글쓰기 버튼 자리를 비운다 */
+.reels-root .reels-page > .sf { margin-left: var(--rl-gutter, 20px); margin-right: var(--rl-gutter, 20px); }
+/* 공론장 — 떠 있는 글쓰기 버튼(.fo-fab, 아래 88~140px) 자리는 푸터 폭을 좁히지 않고 아래 여백으로 비운다.
+   폭을 좁히면 재단 문장이 다른 화면과 달리 줄바꿈됐다(2026-10-21 대표 지적) */
+.reels-root .reels-page.has-fab { padding-bottom: calc(164px + var(--now-line, 0px) + env(safe-area-inset-bottom, 0px)); }
+html[data-font-size="large"] .sf { font-size: 15px; }
+html[data-contrast="high"] .sf--paper .sf-logo { filter: invert(1) hue-rotate(180deg); }
+
+/* ── 읽기 지면(/about · /privacy) — 「일점 지면」: 종이 위 잉크, 1px 괘선, 65자 폭 ─────────── */
+.doc { padding: 24px var(--rl-gutter, 20px) 0; max-width: 720px; color: var(--ink, #111111); }
+.doc-head { border-bottom: 1px solid var(--line, #1c2130); padding-bottom: 20px; margin-bottom: 8px; }
+.doc-k { margin: 0 0 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sub, #5b6170); }
+.doc h1 { margin: 0; font-size: 28px; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; text-wrap: balance; }
+.doc-lede { margin: 14px 0 0; font-size: 17px; line-height: 1.7; color: var(--sub, #5b6170); }
+.doc-lede strong { color: var(--ink, #111111); }
+.doc section { padding: 20px 0 6px; border-bottom: 1px solid var(--line, #1c2130); }
+.doc h2 { margin: 0 0 10px; font-size: 20px; font-weight: 700; line-height: 1.3; }
+.doc p { margin: 0 0 12px; font-size: 17px; line-height: 1.75; }
+.doc a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.doc-list { margin: 0 0 12px; padding-left: 1.2em; font-size: 17px; line-height: 1.75; }
+.doc-list li { margin-bottom: 6px; }
+.doc-dl { margin: 0 0 12px; display: grid; gap: 4px 16px; grid-template-columns: 1fr; font-size: 17px; line-height: 1.7; }
+.doc-dl dt { font-weight: 700; margin-top: 8px; }
+.doc-dl dd { margin: 0 0 4px; color: var(--sub, #5b6170); }
+@media (min-width: 640px) { .doc-dl { grid-template-columns: 9rem minmax(0, 1fr); } .doc-dl dt { margin-top: 0; } .doc-dl dd { color: var(--ink, #111111); } }
+.doc-foot { margin: 20px 0 0; font-size: 15px; font-weight: 700; }
+@media (min-width: 768px) { .doc h1 { font-size: 36px; } }
+html[data-font-size="large"] .doc p, html[data-font-size="large"] .doc-list, html[data-font-size="large"] .doc-dl, html[data-font-size="large"] .doc-lede { font-size: 20px; }
+
+/* ── 데스크탑 호버 — 밑줄 대신 "점묘가 열리는" 반전 (2026-10-26 대표 지시, 2차 정정) ─────────
+   사진 스켈레톤(app/dot.css DotImage: 6px 격자 위 반지름 1.2px 점이 뷰포트 진입 때 5px 로 자라며 실사가
+   열린다)과 같은 문법을 뉴스 목록 행(크로스뷰 .cvp-row · 홈 보드 .bd-row · 공론장 .fo-row · 팟캐 .pc-row)의
+   호버 배경에 쓴다(홈 보드 .bd-row 는 ::before 가 잉크 점 시그니처라 ::after 를 쓴다). 다만 사진 대신 **잉크**가 열린다 = 반전: 종이 위 작은 잉크 점(1.2px)이 420ms outCubic 으로
+   5px 까지 자라 서로 맞닿으면 행이 잉크 면이 되고, 그 위 글자는 종이색으로 바뀐다. 마우스를 떼면 점이 다시
+   줄어들며 종이로 돌아온다. 마우스(정밀 포인터) 기기만. reduced-motion 은 전이 없이 반전만. */
+@property --z2-hr {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 1.2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  html body .cvp-row, html body .reels-root .bd-row, html body .fo-row, html body .pc-row {
+    position: relative; isolation: isolate;
+    transition: color 160ms ease-out 160ms;
+  }
+  html body .cvp-row::before, html body .reels-root .bd-row::after, html body .fo-row::before, html body .pc-row::before {
+    content: ""; position: absolute; inset: 0 -16px; z-index: -1; pointer-events: none;
+    --z2-hr: 1.2px;
+    opacity: 0;
+    background-color: var(--paper, #f4f5f7);
+    /* dot.css 데스크탑 격자와 동일: 6px 피치, 점 반지름 --z2-hr(1.2 → 5px 이면 완전히 덮인다) */
+    background-image: radial-gradient(circle, var(--ink, #111111) var(--z2-hr), transparent calc(var(--z2-hr) + 0.5px));
+    background-size: 6px 6px;
+    transition: --z2-hr 420ms cubic-bezier(0.33, 1, 0.68, 1), opacity 120ms ease-out;
+  }
+  html body .cvp-row:hover::before, html body .reels-root .bd-row:hover::after, html body .fo-row:hover::before, html body .pc-row:hover::before {
+    opacity: 1; --z2-hr: 5px;
+  }
+  /* 반전 — 점이 맞닿을 즈음(160ms 뒤) 글자·아이콘·온도 숫자가 종이색으로 */
+  html body .cvp-row:hover, html body .cvp-row:hover *,
+  html body .reels-root .bd-row:hover, html body .reels-root .bd-row:hover *,
+  html body .fo-row:hover, html body .fo-row:hover *,
+  html body .pc-row:hover, html body .pc-row:hover * {
+    color: var(--paper, #f4f5f7); --t-ink: var(--paper, #f4f5f7); --row-ink: var(--paper, #f4f5f7);
+    transition: color 160ms ease-out 160ms;
+  }
+  /* 기존 밑줄 호버 규칙을 끈다(원 규칙보다 선택자 점수가 높아야 한다) */
+  html body .cvp-row:hover .cvp-row-link .cvp-row-title,
+  html body .reels-root .bd-row:hover .bd-row-link .bd-text,
+  html body .reels-root .bd-row:hover a.bd-dl-title,
+  html body .fo-row:hover .fo-row-link .fo-title,
+  html body .fo-row:hover .fo-row-link .fo-text,
+  html body .pc-row:hover h3 a { text-decoration: none; }
+  /* 팟캐 행의 주황 재생 원은 반전하지 않는다(재생 = 주황 규약) */
+  html body .pc-row:hover .pc-circle, html body .pc-row:hover .pc-circle * { color: #0b0d12; }
+  @media (prefers-reduced-motion: reduce) {
+    html body .cvp-row::before, html body .reels-root .bd-row::after, html body .fo-row::before, html body .pc-row::before,
+    html body .cvp-row, html body .cvp-row:hover *, html body .reels-root .bd-row, html body .reels-root .bd-row:hover *,
+    html body .fo-row, html body .fo-row:hover *, html body .pc-row, html body .pc-row:hover * { transition: none; }
+  }
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ZONE-2 팟캐스트 크론 — 매시 정각 호출, 회차 생성은 핸들러가 KST 07시대에만(launchd TZ 캐시 버그 회피).
+     다른 시각에는 빈 헤드라인 보충만 돈다(app/api/cron/podcast). CRON_SECRET 을 채워라. -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>kr.zone2.podcast</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/curl</string>
+    <string>-s</string><string>-X</string><string>POST</string>
+    <string>http://localhost:3002/api/cron/podcast</string>
+    <string>-H</string><string>Authorization: Bearer __CRON_SECRET__</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Minute</key><integer>0</integer></dict>
+  <key>StandardErrorPath</key><string>/tmp/zone2-podcast.err</string>
+</dict>
+</plist>

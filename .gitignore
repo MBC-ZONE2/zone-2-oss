@@ -1,0 +1,66 @@
+# 의존성
+node_modules/
+node_modules
+.pnp
+.pnp.*
+.yarn/*
+
+# Next.js
+.next/
+out/
+build/
+dist/
+next-env.d.ts
+*.tsbuildinfo
+
+# 환경 변수 / 시크릿
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.production.local
+
+# Supabase
+supabase/.branches
+supabase/.temp
+**/supabase/.env
+
+# 로그
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 테스트 / 커버리지
+coverage/
+.turbo/
+
+# OS / 에디터
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.pem
+*.swp
+
+# 빌드 산출물 / 임시
+tmp/
+temp/
+
+# 제출·보고 트랙 (원안 스펙) — 공개 저장소 제외
+proposal/
+
+# [#37] 내부 PRD/시연 HTML — 리포 미포함(공개 전 필수)
+/ZONE-2*.html
+
+# 감정분류 사이드카 전용 venv (torch/transformers)
+.venv-sentiment/
+public/_preview.html
+
+# Claude Code 로컬 전용(워크트리·개인 권한 설정) — 커밋 금지
+.claude/worktrees/
+.claude/settings.local.json
+
+# 매칭 정밀도 표본 작업 파일(scripts/once/precision-at5-sample·rescore-sample 의 입출력) — 로컬 전용
+.precision-*.json
