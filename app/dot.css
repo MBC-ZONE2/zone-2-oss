@@ -1,0 +1,183 @@
+/* ==========================================================================
+   dot.css — 점묘 사진(DotImage) + 크로스뷰 슬라이드 조판 + 온도 텍스트
+   기획안 (3) 형태·재질: 사진은 휴면(화면 밖)일 때만 점묘, 뷰포트 진입 시
+   자동으로 완전히 열린다. 렌즈·캔버스·서버 API 없음. 사진 위 텍스트 금지.
+   색은 전부 .reels-root 스코프 변수(--paper/--ink/--sub/--line/--macro/--micro).
+   ========================================================================== */
+
+/* 점 반지름 — 애니메이션 가능한 커스텀 프로퍼티. 10px 격자에서 8px 이면 완전히 열림 */
+@property --dot-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 2px;
+}
+
+/* ── 점묘 사진 래퍼 — 종이 바닥 위에 마스크된 실사 ─────────────────────── */
+.dot-img {
+  position: relative;
+  overflow: hidden;
+  background: var(--paper, #f4f5f7);
+  border-radius: 0;
+  box-shadow: none;
+}
+.dot-img > img {
+  --dot-r: 2px;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  -webkit-mask-image: radial-gradient(circle, #000 var(--dot-r), transparent calc(var(--dot-r) + 0.5px));
+  mask-image: radial-gradient(circle, #000 var(--dot-r), transparent calc(var(--dot-r) + 0.5px));
+  -webkit-mask-size: 10px 10px;
+  mask-size: 10px 10px;
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  /* 해상 — 점 반지름 2 → 8px, 420ms outCubic (기획안 모션 표) */
+  transition: --dot-r 420ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+.dot-img.is-open > img { --dot-r: 8px; }
+
+/* 높이 프리셋 — 홈 덱 히어로: 40dvh, 최대 420px */
+.dot-h-hero { height: 40dvh; max-height: 420px; min-height: 200px; }
+
+/* reduced-motion: 처음부터 실사 */
+@media (prefers-reduced-motion: reduce) {
+  .dot-img > img { --dot-r: 8px; transition: none; }
+}
+/* 고대비: 사진 클린(마스크 없음) */
+html[data-contrast="high"] .dot-img > img {
+  --dot-r: 8px;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* 데스크탑(≥1100) — 상세 히어로가 680~870px 로 넓어지면 10px 격자는 점이 굵어
+   해상도가 낮아 보인다. 격자 피치 10→6px, 반지름 휴면 2→1.2px · 해상 8→5px
+   (5px ≥ 6/√2 ≈ 4.24px 이라 완전히 덮인다). 같은 점묘 느낌, 사진 정보는 살아난다.
+   홈 덱(모바일)은 이 블록 밖이라 그대로. */
+@media (min-width: 1100px) {
+  .dot-img > img {
+    --dot-r: 1.2px;
+    -webkit-mask-size: 6px 6px;
+    mask-size: 6px 6px;
+  }
+  .dot-img.is-open > img { --dot-r: 5px; }
+}
+/* 데스크탑 reduced-motion: 처음부터 실사(6px 격자의 완전 열림 값) */
+@media (min-width: 1100px) and (prefers-reduced-motion: reduce) {
+  .dot-img > img { --dot-r: 5px; transition: none; }
+}
+
+/* ── 크로스뷰 슬라이드 조판(.cvx-*) — 카드·라운드·그림자 없음 ───────────
+   순서: 헤드라인(⋯/▬ 두 줄) → 사진(풀블리드) → 읽는 점 첫 문장 → 괘선 → 링크 */
+.reels-root .cvx-head {
+  display: grid;
+  gap: 2px;
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+/* 사진 없는 폴백 — 괘선 두 줄 사이 40px 확대 */
+.reels-root .cvx-head.xl { font-size: 40px; line-height: 1.25; letter-spacing: -0.02em; }
+.reels-root .cvx-line {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  column-gap: 8px;
+  align-items: start;
+}
+.reels-root .cvx-line.plain { grid-template-columns: 1fr; }
+/* 마커 — 첫 줄 x-높이 중앙에 앉는다(em 기반이라 26/40px 모두 맞음) */
+.reels-root .mk {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: calc(0.65em - 3px);
+}
+.reels-root .mk-macro > i {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--macro);
+}
+.reels-root .mk-micro { margin-top: calc(0.65em - 1.5px); }
+.reels-root .mk-micro > i {
+  width: 18px; height: 3px;
+  background: var(--micro);
+}
+/* 기초 줄은 700, 광역 줄은 500 — 활자 무게로도 가른다 */
+.reels-root .cvx-line.macro .cvx-text { font-weight: 500; }
+.reels-root .cvx-line.micro .cvx-text { font-weight: 700; }
+/* 매체 라벨은 시각적으로 숨기고 스크린리더에만 (색 의존 0) */
+.reels-root .cvx-line .sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.reels-root .cvx-point {
+  font-size: 17px;
+  line-height: 1.65;
+  font-weight: 400;
+  color: var(--ink);
+}
+.reels-root .cvx-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
+  color: var(--sub); font-size: 15px; font-weight: 500; line-height: 1.5;
+}
+.reels-root .cvx-rule {
+  border: 0; border-top: 1px solid var(--line);
+  height: 0; margin-top: 0; margin-bottom: 0;
+}
+.reels-root .cvx-links {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: 4px 16px;
+}
+.reels-root .cvx-more {
+  font-size: 17px; font-weight: 700; color: var(--ink);
+  text-decoration: underline; text-underline-offset: 3px;
+  padding: 10px 0; /* 탭 타깃 44px */
+}
+.reels-root .cvx-src {
+  margin-left: auto;
+  display: flex; gap: 14px;
+}
+.reels-root .cvx-src a {
+  font-size: 15px; font-weight: 500; color: var(--sub);
+  text-decoration: underline; text-underline-offset: 3px;
+  padding: 12px 0;
+}
+.reels-root .cvx-src a:hover,
+.reels-root .cvx-more:hover { color: var(--line); }
+
+/* ── 온도 텍스트(TempChip) — 배지 대신 6px 점 + 활자, 밑줄 링크 ────────── */
+.reels-root .tline-wrap { display: grid; gap: 10px; justify-items: start; }
+.reels-root .tline {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.5;
+}
+.reels-root .tline.idle { color: var(--sub); font-weight: 500; }
+.reels-root .tline-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex: none;
+  background: var(--tline-color, var(--ink));
+}
+.reels-root .tline a {
+  color: inherit; text-decoration: underline; text-underline-offset: 3px;
+  padding: 10px 0; /* 탭 타깃 */
+}
+.reels-root .tline-toggle {
+  appearance: none; background: none; border: 0; padding: 10px 0;
+  font: inherit; font-size: 15px; font-weight: 500; color: var(--sub);
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+/* 펼침 — 괘선 아래 텍스트 행 */
+.reels-root .tpanel-text {
+  width: 100%;
+  border-top: 1px solid var(--line);
+  padding: 12px 0 4px;
+  display: grid; gap: 8px;
+}
+.reels-root .tpanel-text .tstats { grid-template-columns: repeat(4, auto); justify-content: start; gap: 4px 20px; }
+@media (max-width: 480px) {
+  .reels-root .tpanel-text .tstats { grid-template-columns: repeat(2, auto); }
+}

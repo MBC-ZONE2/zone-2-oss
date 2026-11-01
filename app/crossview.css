@@ -1,0 +1,565 @@
+/* ==========================================================================
+   crossview.css — 크로스뷰 목록·상세 「일점(一點) 지면」 조판 (.cvp 스코프)
+   기획안 (5): 목록 = 괘선 행(광역 ⋯ 위 · 기초 ▬ 아래) — 두 제목 같은 굵기 700.
+   Figma #12(2026-09-11): 항목 옆 세로 괘선(유사도 점)과 "보도 유사도 N%" 표기는 뺐다 —
+   행 메타는 날짜 · 온도(밴드 낱말+숫자)만.
+   (검토 의견: 기초만 굵게 두면 "기초 입장 앱"처럼 읽힌다. 구분은 마커·매체 라벨·아이콘만),
+   상세 = 헤드라인 → 점묘 히어로 → 두 칼럼 → AI 스탬프 → 레일 → 원문 → 공론장.
+   카드·라운드·그림자·유리·그라디언트 금지. 등장 애니메이션 없음(찍힘).
+   괘선 1px #1c2130 — 점선(dashed)은 "아직 없음/로딩", 실선은 "도착".
+   색은 .cvp 에 토큰으로 고정한다(.reels-root 밖에서도 동일하게 보이도록).
+   ========================================================================== */
+
+.cvp {
+  --ink: #111111;        /* 잉크 본문 */
+  --head: #1c2130;       /* 잉크 제호·괘선 */
+  --sub: #5b6170;        /* 보조 잉크(메타·비교집합 낱말) */
+  --paper: #f4f5f7;      /* 종이 */
+  --white: #ffffff;
+  --black: #0b0d12;      /* 검은 세계 */
+  --on-black: #f4f5f7;   /* 검은 세계 위 활자 */
+  --line: #1c2130;       /* 괘선 */
+  --macro: #6706d3;      /* 광역 ⋯ 도트 3개(6px)에만 */
+  --micro: #e66bd2;      /* 기초 ▬ 괘선 토막(18×3px)에만 */
+  --stamp: #e66bd2;      /* 'AI가 정리' 분홍 필드 */
+  --lav: #b18cff;        /* 검은 세계 링크 */
+  --soft: #e9eaee;       /* 옅은 면(활성 배경 없음 — 눌림 피드백만) */
+
+  /* 좌측 기준선 — 릴스 스코프 변수(20/76px)를 물려받는다 */
+  --gutter: var(--rl-gutter, 20px);
+  --gutter-r: 20px;
+
+  /* 타이포 — 폰 기준. 데스크탑·큰글씨는 아래에서 승격 */
+  --t-mast: 25px;   /* 제호 */
+  --t-head: 28px;   /* 헤드라인(상세) */
+  --t-title: 20px;  /* 제목(목록 행·칼럼) */
+  --t-body: 17px;   /* 본문 */
+  --t-col: 15px;    /* 두 칼럼 요약 15px/1.75 */
+  --t-meta: 15px;   /* 메타 */
+  --t-fine: 12px;   /* 본문 끝 한 줄 */
+  --t-num: 40px;    /* 대형 숫자 */
+
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  word-break: keep-all;
+  line-height: 1.65;
+  min-height: 100dvh;
+  padding: 0 var(--gutter-r) 40px var(--gutter);
+}
+@media (min-width: 768px) {
+  .cvp {
+    --gutter: var(--rl-gutter, 76px);
+    --t-mast: 40px;
+    --t-head: 40px;
+    --t-title: 22px;
+    --t-num: 56px;
+  }
+}
+/* 큰글씨 — 본문 21·메타 18·제목 24·헤드라인 30·제호 30 */
+html[data-font-size="large"] .cvp {
+  --t-mast: 30px;
+  --t-head: 30px;
+  --t-title: 24px;
+  --t-body: 21px;
+  --t-col: 18px;
+  --t-meta: 18px;
+  --t-fine: 14px;
+  --t-num: 48px;
+}
+/* 고대비 — 앱 전체가 검은 세계. 마커도 잉크화(자리·라벨로만 구분) */
+html[data-contrast="high"] .cvp {
+  --ink: #f4f5f7;
+  --head: #f4f5f7;
+  --sub: #f4f5f7;
+  --paper: #0b0d12;
+  --line: #f4f5f7;
+  --macro: #f4f5f7;
+  --micro: #f4f5f7;
+  --soft: #1c2130;
+}
+
+.cvp :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 0; }
+.cvp a { color: inherit; }
+.cvp p, .cvp h1, .cvp h2, .cvp h3, .cvp li { -webkit-user-select: text; user-select: text; }
+
+/* ── 괘선 ─────────────────────────────────────────────────────────────── */
+.cvp-rule { border: 0; border-top: 1px solid var(--line); height: 0; margin: 0; }
+.cvp-rule.pending { border-top-style: dashed; }
+
+/* ── 마커 — 광역 ⋯ 6px 점 3개 / 기초 ▬ 18×3px. 색은 이 도형에만 ─────── */
+.cvp-mk { display: inline-flex; align-items: center; gap: 3px; flex: none; vertical-align: middle; }
+.cvp-mk.macro > i { width: 6px; height: 6px; border-radius: 50%; background: var(--macro); }
+.cvp-mk.micro > i { width: 18px; height: 3px; background: var(--micro); }
+/* 스크린리더 전용 매체 라벨(색 의존 0) */
+.cvp-sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ── 제호(마스트) — 표지 제호와 같은 활자 ───────────────────────────── */
+.cvp-mast { padding: 28px 0 14px; display: grid; gap: 6px; }
+.cvp-mast h1 {
+  font-size: var(--t-mast); line-height: 1.15; font-weight: 700;
+  letter-spacing: -0.02em; color: var(--head);
+}
+.cvp-mast p {
+  font-size: var(--t-meta); font-weight: 500; color: var(--sub);
+  font-variant-numeric: tabular-nums;
+}
+/* 소제 꼬리 "— 같은 사안, 두 시선" — 한 덩어리로 묶어 폰(390px)에서 "두 / 시선" 으로
+   갈라지지 않게. 폭이 모자라면 꼬리 전체가 둘째 줄로 내려가고, 데스크탑은 한 줄 그대로 */
+.cvp-mast-tag { white-space: nowrap; }
+
+/* ── 뒤로 링크(활자) ─────────────────────────────────────────────────── */
+.cvp-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 44px; margin-top: 8px;
+  font-size: var(--t-meta); font-weight: 500; color: var(--sub);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.cvp-back:hover { color: var(--ink); }
+
+/* ── 필터 — 텍스트 탭(44px). 활성 = 잉크 700 + 아래 2px 괘선 ──────────── */
+.cvp-filter {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: 4px 24px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+/* 탭 줄 = 가로 스크롤 스트립(Figma #7 ① 과 같은 문법) — 스크롤바 숨김·칩 단위 스냅 */
+.cvp-tabs {
+  display: flex; gap: 18px; overflow-x: auto; scrollbar-width: none;
+  overscroll-behavior-x: contain; scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch; -ms-overflow-style: none;
+  margin: 0; padding: 0; list-style: none;
+}
+.cvp-tabs::-webkit-scrollbar { display: none; }
+.cvp-tabs > li { flex: none; scroll-snap-align: start; }
+.cvp-tab {
+  appearance: none; background: none; border: 0; padding: 0;
+  display: inline-flex; align-items: center; flex: none;
+  min-height: 44px; margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  font: inherit; font-size: var(--t-meta); font-weight: 500; color: var(--sub);
+  cursor: pointer; white-space: nowrap;
+}
+.cvp-tab:hover { color: var(--ink); }
+.cvp-tab[aria-pressed="true"] { color: var(--ink); font-weight: 700; border-bottom-color: var(--ink); }
+.cvp-filter-group { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.cvp-filter-k {
+  flex: none; font-size: var(--t-fine); font-weight: 500; color: var(--sub);
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+
+/* ── 목록 행 — 괘선 행 ≥96px. 광역(⋯) 위 · 기초(▬) 아래, 사이 세로 괘선 없음 ───
+   Figma #12: 항목 옆 세로 테두리 제거 — 두 제목은 가로 괘선(행 경계)만으로 갈린다. */
+.cvp-rows { list-style: none; margin: 0; padding: 0; }
+.cvp-row { border-top: 1px solid var(--line); }
+.cvp-rows > .cvp-row:last-child { border-bottom: 1px solid var(--line); }
+.cvp-row-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "macro" "micro";
+  row-gap: 12px;
+  min-height: 96px; padding: 14px 0 12px;
+  text-decoration: none; color: inherit;
+}
+.cvp-row-link:hover .cvp-row-title { text-decoration: underline; text-underline-offset: 3px; }
+.cvp-row-link:active { background: none; }
+.cvp-col { display: grid; gap: 4px; min-width: 0; }
+.cvp-col.macro { grid-area: macro; }
+.cvp-col.micro { grid-area: micro; }
+.cvp-col-head { display: flex; align-items: center; gap: 8px; min-height: 12px; }
+.cvp-col-outlet { font-size: max(var(--t-fine), 13px); font-weight: 500; color: var(--sub); letter-spacing: 0.08em; }
+/* 출처 표기 옆 매체 아이콘(<MediaIcon> 송신탑/종이신문 16px) — 글자색을 따르고 텍스트 앞 4px.
+   헤드라인 앞 ⋯/▬ 마커를 대체하지 않는다(범례·출처 줄에만). */
+.cvp-mi { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; margin-right: 4px; flex: none; }
+.cvp-row-title {
+  font-size: var(--t-title); line-height: 1.35; letter-spacing: -0.01em; color: var(--ink);
+  text-wrap: balance;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cvp-row-title { font-weight: 700; } /* 광역·기초 같은 굵기 */
+.cvp-row-title.empty { color: var(--sub); font-weight: 400; }
+
+/* 태블릿 이상 — 광역·기초를 좌우 두 열로. 열 사이는 빈 종이(간격)뿐, 괘선 없음 */
+@media (min-width: 640px) {
+  .cvp-row-link {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "macro micro";
+    column-gap: 32px;
+  }
+  .cvp-col.macro { padding-right: 0; }
+  .cvp-col.micro { padding-left: 0; }
+}
+/* 행 메타 — 날짜 · 온도(숫자+활자). 유사도 수치는 쓰지 않는다(Figma #12) */
+.cvp-row-meta {
+  display: flex; flex-wrap: wrap; gap: 4px 14px;
+  padding: 0 0 14px;
+  font-size: var(--t-meta); font-weight: 500; color: var(--sub); line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.cvp-row-meta .temp { color: var(--ink); font-weight: 700; }
+.cvp-row-meta .temp::before {
+  content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ink); margin-right: 6px; vertical-align: middle;
+}
+
+/* 빈 상태·에러 — 점선 괘선 두 줄 사이 활자 */
+.cvp-empty {
+  border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line);
+  padding: 40px 0; display: grid; gap: 6px;
+}
+.cvp-empty strong { font-size: var(--t-title); font-weight: 700; color: var(--ink); }
+.cvp-empty p { font-size: var(--t-meta); color: var(--sub); }
+.cvp-empty a, .cvp-textbtn {
+  appearance: none; background: none; border: 0; padding: 10px 0;
+  display: inline-flex; align-items: center; min-height: 44px; width: fit-content;
+  font: inherit; font-size: var(--t-body); font-weight: 700; color: var(--ink);
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+
+/* 로딩 행 — 점선 괘선만(시머 없음). 데이터 도착 시 실선 행으로 대체된다 */
+.cvp-row.pending { border-top-style: dashed; }
+.cvp-rows > .cvp-row.pending:last-child { border-bottom-style: dashed; }
+.cvp-row.pending .cvp-row-link { min-height: 96px; pointer-events: none; }
+.cvp-pending-line { display: block; height: 0; border-top: 1px dashed var(--line); width: 60%; margin-top: 12px; }
+.cvp-pending-line.short { width: 32%; }
+
+/* ── 상세: 헤드라인 40/28px — ⋯/▬ 두 줄 ─────────────────────────────── */
+.cvp-head {
+  display: grid; gap: 4px;
+  padding: 18px 0 20px;
+  font-size: var(--t-head); line-height: 1.25; font-weight: 700;
+  letter-spacing: -0.02em; color: var(--head); text-wrap: balance;
+}
+/* 사진 없음 — 괘선 두 줄 사이 헤드라인 40px */
+.cvp-head.xl { --t-head: 30px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 24px 0 26px; } /* 댓글 화면 헤드라인 — 폰에서 두 줄씩 */
+@media (min-width: 768px) { .cvp-head.xl { --t-head: 40px; padding: 28px 0 32px; } }
+html[data-font-size="large"] .cvp-head.xl { --t-head: 40px; }
+.cvp-head-line { display: grid; grid-template-columns: 26px minmax(0, 1fr); column-gap: 8px; align-items: start; position: relative; }
+.cvp-head-line.plain { grid-template-columns: minmax(0, 1fr); }
+.cvp-head-line .cvp-mk { margin-top: calc(0.62em - 3px); }
+.cvp-head-line .cvp-mk.micro { margin-top: calc(0.62em - 1.5px); }
+.cvp-head-line .cvp-head-text { font-weight: 700; } /* 광역·기초 같은 굵기·크기 */
+.cvp-head-meta {
+  display: flex; flex-wrap: wrap; gap: 4px 12px;
+  font-size: var(--t-meta); font-weight: 500; color: var(--sub); font-variant-numeric: tabular-nums;
+}
+
+/* ── 상세: 실사 히어로 — DotImage + 하단 3줄 점 디졸브(mask) ──────────── */
+.cvp-hero-h { height: 46dvh; max-height: 480px; min-height: 220px; }
+.cvp-hero { margin: 0 calc(-1 * var(--gutter-r)) 0 calc(-1 * var(--gutter)); }
+.dot-img.cvp-hero {
+  /* 위 = 실사 전부, 하단 30px = 10px 격자 점 3줄(반지름 4→3→2px)로 종이에 흩어진다 */
+  -webkit-mask-image:
+    linear-gradient(#000, #000),
+    radial-gradient(circle, #000 4px, transparent 4.5px),
+    radial-gradient(circle, #000 3px, transparent 3.5px),
+    radial-gradient(circle, #000 2px, transparent 2.5px);
+  mask-image:
+    linear-gradient(#000, #000),
+    radial-gradient(circle, #000 4px, transparent 4.5px),
+    radial-gradient(circle, #000 3px, transparent 3.5px),
+    radial-gradient(circle, #000 2px, transparent 2.5px);
+  -webkit-mask-size: 100% calc(100% - 30px), 10px 10px, 10px 10px, 10px 10px;
+  mask-size: 100% calc(100% - 30px), 10px 10px, 10px 10px, 10px 10px;
+  -webkit-mask-position: 0 0, 0 calc(100% - 20px), 0 calc(100% - 10px), 0 100%;
+  mask-position: 0 0, 0 calc(100% - 20px), 0 calc(100% - 10px), 0 100%;
+  -webkit-mask-repeat: no-repeat, repeat-x, repeat-x, repeat-x;
+  mask-repeat: no-repeat, repeat-x, repeat-x, repeat-x;
+}
+html[data-contrast="high"] .dot-img.cvp-hero { -webkit-mask-image: none; mask-image: none; }
+
+/* ── 상세: 두 칼럼 '광역이 본 것' | '기초가 본 것' — 15px/1.75, 폰은 상하 ── */
+.cvp-cols { display: grid; gap: 0; border-top: 1px solid var(--line); margin-top: 20px; }
+.cvp-colm { display: grid; gap: 10px; align-content: start; padding: 16px 0 20px; min-width: 0; }
+.cvp-colm + .cvp-colm { border-top: 1px solid var(--line); }
+.cvp-colm-k { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cvp-colm-k h2 { font-size: var(--t-meta); font-weight: 700; color: var(--ink); }
+.cvp-colm-k .outlet { font-size: var(--t-meta); font-weight: 500; color: var(--sub); }
+.cvp-colm h3 { font-size: var(--t-title); line-height: 1.35; letter-spacing: -0.01em; color: var(--ink); text-wrap: balance; }
+.cvp-colm h3 { font-weight: 700; } /* 광역·기초 같은 굵기 */
+.cvp-colm-text { font-size: var(--t-col); line-height: 1.75; color: var(--sub); font-weight: 400; }
+.cvp-colm-foot { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--t-meta); font-weight: 500; color: var(--sub); font-variant-numeric: tabular-nums; }
+.cvp-colm-foot a { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; padding: 8px 0; }
+.cvp-colm-empty { font-size: var(--t-col); color: var(--sub); border-top: 1px dashed var(--line); padding-top: 12px; }
+@media (min-width: 640px) {
+  .cvp-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .cvp-colm + .cvp-colm { border-top: 0; border-left: 1px solid var(--line); padding-left: 20px; }
+  .cvp-colm:first-child { padding-right: 20px; }
+}
+
+/* 시그니처 — 교집합 낱말만 잉크 700, 나머지 #5b6170 400. 큰글씨 모드는 밑줄 추가 */
+.cvp-kw { color: var(--ink); font-weight: 700; }
+html[data-font-size="large"] .cvp-kw { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+/* ── 'AI가 정리' 분홍 필드 스탬프(18px 잉크 글자) + reading_point 인용괘선 ── */
+.cvp-ai { display: grid; gap: 14px; padding: 24px 0 8px; border-top: 1px solid var(--line); }
+.cvp-stamp {
+  display: inline-block; width: fit-content;
+  background: var(--stamp); color: #0b0d12;
+  font-size: 18px; font-weight: 700; line-height: 1; letter-spacing: -0.01em;
+  padding: 7px 10px 8px;
+}
+html[data-font-size="large"] .cvp-stamp { font-size: 21px; }
+.cvp-quote {
+  border-left: 1px solid var(--line); padding: 2px 0 2px 14px;
+  font-size: var(--t-body); line-height: 1.65; color: var(--ink); font-weight: 400;
+  margin: 0;
+}
+.cvp-ai-note { font-size: var(--t-meta); color: var(--sub); font-weight: 500; }
+
+/* ── 카드뉴스 가로 레일 — 종이 타일(표지 컷만 검은 세계) ─────────────── */
+.cvp-rail-wrap { display: grid; gap: 10px; padding-top: 24px; border-top: 1px solid var(--line); margin-top: 24px; }
+.cvp-rail-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.cvp-rail-head h2 { font-size: var(--t-title); font-weight: 700; color: var(--ink); }
+.cvp-rail-head span { font-size: var(--t-meta); color: var(--sub); font-weight: 500; font-variant-numeric: tabular-nums; }
+.cvp-rail {
+  display: flex; gap: 0; list-style: none; margin: 0; padding: 0;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scrollbar-width: none;
+}
+.cvp-rail::-webkit-scrollbar { display: none; }
+.cvp-tile {
+  flex: 0 0 78%; max-width: 360px; scroll-snap-align: start;
+  border-top: 1px solid var(--line);
+  padding: 14px 20px 14px 0; margin-right: 20px;
+  min-height: 200px; display: flex; flex-direction: column; gap: 8px;
+  background: var(--paper);
+}
+.cvp-tile-k { font-size: var(--t-fine); font-weight: 500; color: var(--sub); letter-spacing: 0.14em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+.cvp-tile h3 { font-size: var(--t-title); font-weight: 700; line-height: 1.35; color: var(--ink); }
+.cvp-tile p { font-size: var(--t-col); line-height: 1.75; color: var(--ink); }
+.cvp-tile a { margin-top: auto; width: fit-content; font-size: var(--t-meta); font-weight: 500; color: var(--sub); text-decoration: underline; text-underline-offset: 3px; padding: 10px 0; }
+.cvp-tile.cover { background: var(--black); border-top-color: var(--black); padding-left: 20px; }
+.cvp-tile.cover h3, .cvp-tile.cover p { color: var(--on-black); }
+.cvp-tile.cover .cvp-tile-k { color: rgba(244, 245, 247, 0.62); }
+.cvp-tile.cover a { color: var(--lav); }
+html[data-contrast="high"] .cvp-tile.cover { outline: 1px solid var(--on-black); outline-offset: -1px; }
+.cvp-rail-nav { display: flex; align-items: center; gap: 12px; }
+.cvp-rail-nav button {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid var(--ink); background: transparent; color: var(--ink);
+  display: grid; place-items: center; cursor: pointer; font: inherit; font-size: 20px;
+}
+.cvp-rail-nav button:disabled,
+.cvp-rail-nav button[aria-disabled="true"] { opacity: 0.3; cursor: default; }
+.cvp-rail-nav span { font-size: var(--t-meta); font-weight: 500; color: var(--sub); font-variant-numeric: tabular-nums; }
+
+/* ── 원문 2링크 — 굵은 밑줄 ────────────────────────────────────────── */
+.cvp-sources { display: flex; flex-wrap: wrap; gap: 4px 24px; padding: 20px 0 8px; border-top: 1px solid var(--line); margin-top: 24px; list-style: none; }
+.cvp-sources a {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+  font-size: var(--t-body); font-weight: 700; color: var(--ink);
+  text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px;
+}
+.cvp-sources .cvp-mk { margin-right: 2px; }
+
+/* ── 본문 끝 한 줄 12px — 매칭 신뢰도 · AI 검수 · 공유 ────────────────── */
+.cvp-fine {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px;
+  padding-top: 12px; margin-top: 8px;
+  font-size: var(--t-fine); font-weight: 500; color: var(--sub); line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.cvp-fine .cvp-share {
+  appearance: none; background: none; border: 0; padding: 10px 0;
+  min-height: 44px; display: inline-flex; align-items: center; gap: 4px;
+  font: inherit; font-size: var(--t-fine); font-weight: 700; color: var(--ink);
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+
+/* ── 공론장 — 검은 타일 하나: "댓글 N · 이 사안에 남긴 말" + 한 줄 작성기 + 의견 목록 ──
+   Figma "크로스뷰 — 댓글 전체". 카드·라운드 없음(원형만 예외: 등록 백색원·아바타 원).
+   괘선은 검은 세계 위라 백색 1px. */
+.cvp-forum { display: grid; gap: 0; margin-top: 28px; }
+.cvp-forum-tile {
+  background: var(--black); color: var(--on-black);
+  margin: 0 calc(-1 * var(--gutter-r)) 0 calc(-1 * var(--gutter));
+  padding: 22px var(--gutter-r) 8px var(--gutter);
+  display: grid; gap: 0;
+}
+html[data-contrast="high"] .cvp-forum-tile { outline: 1px solid var(--on-black); outline-offset: -1px; }
+.cvp-forum-tile a { color: var(--on-black); }
+.cvp-forum-tile :focus-visible { outline-color: var(--on-black); }
+
+/* ① 아이브로우 15px — "댓글 N · 이 사안에 남긴 말" */
+.cvp-forum-eyebrow {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px;
+  font-size: var(--t-meta); font-weight: 500; line-height: 1.5; color: rgba(244, 245, 247, 0.7);
+}
+.cvp-forum-count { color: var(--on-black); font-weight: 700; }
+.cvp-forum-count b { font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* ② 작성기 — <OpinionComposer variant="issue" tone="dark">. 스타일은 app/composer.css(.opc-dark) */
+
+/* ③ 의견 목록 — 아바타 원 24px(흰, 잉크 글자) · 이름 13px · 본문 16px 2줄 · 시각 13px
+   [결정 6] 기사 제목(.cvp-head.xl 30/40px 700)과 댓글의 활자를 갈라놓는다: 댓글은 본문
+   활자(--t-body 17/21px)를 쓰지 않고 16px 고정, 이름·시각은 13px. 그리고 행 전체를
+   왼쪽 44px(아바타 24 + 20 거터) 들여써서 '기사 단'과 '댓글 단'이 눈으로 갈라지게 한다. */
+.cvp-forum-list { list-style: none; margin: 12px 0 0; padding: 0; border-top: 1px solid var(--on-black); }
+.cvp-forum-row { border-bottom: 1px solid var(--on-black); }
+.cvp-forum-row a {
+  display: grid; grid-template-columns: 24px minmax(0, 1fr); grid-template-rows: auto auto auto;
+  column-gap: 20px; row-gap: 2px; align-items: center;  /* 24 + 20 = 댓글 단 들여쓰기 44px */
+  padding: 14px 0; min-height: 64px; text-decoration: none; color: var(--on-black);
+}
+.cvp-forum-row a:hover .cvp-forum-body { text-decoration: underline; text-underline-offset: 3px; }
+.cvp-forum-avatar {
+  grid-row: 1; grid-column: 1;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--white); color: var(--black);
+  display: grid; place-items: center;
+  font-size: 10px; font-weight: 700; line-height: 1; letter-spacing: -0.02em;
+}
+/* 이름·시각 13px · 본문 16px — 화면 폭이 넓어져도(--t-* 가 커져도) 댓글 활자는 그대로 */
+.cvp-forum-name { grid-row: 1; grid-column: 2; font-size: 13px; font-weight: 700; line-height: 1.5; }
+.cvp-forum-body {
+  grid-row: 2; grid-column: 2; font-size: 16px; font-weight: 400; line-height: 1.55;
+  overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+}
+.cvp-forum-meta {
+  grid-row: 3; grid-column: 2; display: flex; gap: 10px; align-items: center;
+  font-size: 13px; font-weight: 500; line-height: 1.5; color: rgba(244, 245, 247, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+.cvp-forum-empty {
+  margin: 12px 0 0; padding: 16px 0; border-top: 1px dashed var(--on-black); border-bottom: 1px dashed var(--on-black);
+  font-size: var(--t-body); color: rgba(244, 245, 247, 0.7);
+}
+.cvp-forum-empty::before {
+  content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  border: 1px dashed var(--on-black); margin-right: 8px; vertical-align: middle;
+}
+/* 30건 이상 — 공론장으로 */
+.cvp-forum-tile .cvp-forum-more {
+  width: fit-content; display: inline-flex; align-items: center; min-height: 44px; gap: 6px;
+  font-size: var(--t-meta); font-weight: 700; color: var(--lav);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+html[data-contrast="high"] .cvp-forum-tile .cvp-forum-more { color: var(--on-black); }
+
+
+/* ── 로딩(상세) — 점선 괘선 스택. 시머 없음 ──────────────────────────── */
+.cvp-pending { display: grid; gap: 22px; padding-top: 12px; }
+.cvp-pending-block { display: grid; gap: 12px; }
+.cvp-pending-hero { height: 46dvh; max-height: 480px; min-height: 220px; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); }
+
+/* ==========================================================================
+   데스크탑 판형(≥1100px) — .reels-page 컨테이너(좌 --dk-nav 300 · 우 --dk-pad)가 프레임을
+   주므로 .cvp 자체 gutter(76/20px)는 0 으로 접는다. 아래 규칙은 전부 ≥1100 블록 안 —
+   모바일(<1100) 시각은 무변경.
+     · 목록: 괘선 행을 2단(≥1100)·3단(≥1440)·4단(≥1800) 격자로. 셀 안에서는 폰과 같은
+       두 줄 헤드라인 문법(⋯ 광역 위 · ▬ 기초 아래 — 세로 괘선·유사도 표기 없음, Figma #12).
+     · 상세: 좌 본문(.cvp-main: 헤드라인→히어로→두 시선→AI 정리→카드 스토리) +
+       우 sticky 레일(.cvp-aside: 원문 링크·매칭 신뢰도·공유) + 2행 본문 열 댓글 검은 타일(.cvp-talk).
+       본문 활자 블록은 .dk-read(760px) 상한, 레일 폭 --cvp-aside(320/360/400).
+     · 타이포는 ≥1440 에서 본문 17→18 · 칼럼 15→16 만(과장 금지). 셀렉터 특이도는
+       (0,2,0) 이하로 두어 큰글씨 모드(html[data-font-size] .cvp = (0,2,1))가 이긴다.
+   ========================================================================== */
+@media (min-width: 1100px) {
+  .reels-page .cvp {
+    --gutter: 0px;
+    --gutter-r: 0px;
+    --cvp-aside: 320px;   /* 상세 우측 레일 폭 */
+    --cvp-gap: 40px;      /* 격자 열 간격 · 본문↔레일 간격 */
+  }
+
+  /* ── 목록 격자 — ol 이 격자, li(.cvp-row)가 셀. 행 상단 괘선은 격자 행마다 정렬되고
+        하단 마감 괘선은 ol 이 그린다(마지막 셀만 긋던 규칙은 접는다) ── */
+  .reels-page .cvp-list .cvp-rows {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--cvp-gap);
+    border-bottom: 1px solid var(--line);
+  }
+  .reels-page .cvp-list .cvp-rows > .cvp-row:last-child { border-bottom: 0; }
+  /* 로딩 행이 꼬리에 붙어 있으면 마감 괘선도 점선(= 아직 도착 안 함) */
+  .reels-page .cvp-list .cvp-rows:has(> .cvp-row.pending:last-child) { border-bottom-style: dashed; }
+  .reels-page .cvp-list .cvp-row { display: flex; flex-direction: column; min-width: 0; }
+  /* 셀 안 = 두 줄 헤드라인(≥640 의 좌우 두 열 배치를 접고 폰 문법으로) */
+  .reels-page .cvp-list .cvp-row-link {
+    flex: 1 1 auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "macro" "micro";
+    column-gap: 0;
+  }
+  .reels-page .cvp-list .cvp-col.macro { padding-right: 0; }
+  .reels-page .cvp-list .cvp-col.micro { padding-left: 0; }
+  /* 메타는 셀 바닥에 정렬 — 세로 괘선 열이 없어 활자와 같은 기준선에서 시작한다(Figma #12) */
+  .reels-page .cvp-list .cvp-row-meta { margin-top: auto; padding-left: 0; }
+
+  /* ── 상세 2단 — 로딩 골격(.cvp-pending)은 한 단 그대로 ── */
+  .reels-page .cvp-detail:not(.cvp-pending) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--cvp-aside);
+    column-gap: var(--cvp-gap);
+    align-items: start;
+  }
+  /* 자동 배치에 맡기지 않고 자리를 못 박는다: 1행 뒤로가기(전폭) / 2행 본문|레일 / 3행 댓글(본문 열) */
+  .reels-page .cvp-detail > .cvp-back { grid-column: 1 / -1; grid-row: 1; }
+  .reels-page .cvp-detail > .cvp-main { grid-column: 1; grid-row: 2; min-width: 0; }
+  .reels-page .cvp-detail > .cvp-aside { grid-column: 2; grid-row: 2; }
+  /* 댓글 검은 타일은 본문 열 아래 3행(레일 폭 360px 안 작성기는 비좁다). 안쪽 여백은 레일 타일과 같게 */
+  .reels-page .cvp-detail > .cvp-talk { grid-column: 1; grid-row: 3; min-width: 0; margin-top: 8px; }
+  .reels-page .cvp-detail > .cvp-talk .cvp-forum-tile { padding: 22px 24px 12px; margin: 0; }
+  .reels-page .cvp-detail > .cvp-talk .cvp-forum-tile > * { max-width: var(--dk-read); }
+  /* 히어로·검은 타일의 풀블리드 음수 마진은 gutter 0 이라 자연히 0 */
+  .reels-page .cvp-detail .cvp-hero-h { max-height: 520px; }
+  /* 히어로 하단 점 디졸브도 6px 격자로 촘촘히 — 4줄 24px 띠(반지름 2.6→2.1→1.6→1.1px).
+     사진 본체 격자(app/dot.css ≥1100: 6px/5px)와 피치를 맞춘다 */
+  .reels-page .cvp-detail .dot-img.cvp-hero {
+    -webkit-mask-image:
+      linear-gradient(#000, #000),
+      radial-gradient(circle, #000 2.6px, transparent 3.1px),
+      radial-gradient(circle, #000 2.1px, transparent 2.6px),
+      radial-gradient(circle, #000 1.6px, transparent 2.1px),
+      radial-gradient(circle, #000 1.1px, transparent 1.6px);
+    mask-image:
+      linear-gradient(#000, #000),
+      radial-gradient(circle, #000 2.6px, transparent 3.1px),
+      radial-gradient(circle, #000 2.1px, transparent 2.6px),
+      radial-gradient(circle, #000 1.6px, transparent 2.1px),
+      radial-gradient(circle, #000 1.1px, transparent 1.6px);
+    -webkit-mask-size: 100% calc(100% - 24px), 6px 6px, 6px 6px, 6px 6px, 6px 6px;
+    mask-size: 100% calc(100% - 24px), 6px 6px, 6px 6px, 6px 6px, 6px 6px;
+    -webkit-mask-position: 0 0, 0 calc(100% - 18px), 0 calc(100% - 12px), 0 calc(100% - 6px), 0 100%;
+    mask-position: 0 0, 0 calc(100% - 18px), 0 calc(100% - 12px), 0 calc(100% - 6px), 0 100%;
+    -webkit-mask-repeat: no-repeat, repeat-x, repeat-x, repeat-x, repeat-x;
+    mask-repeat: no-repeat, repeat-x, repeat-x, repeat-x, repeat-x;
+  }
+  html[data-contrast="high"] .reels-page .cvp-detail .dot-img.cvp-hero { -webkit-mask-image: none; mask-image: none; }
+  /* 우측 레일 — sticky. 댓글이 길면 레일 안에서만 스크롤(본문 끝까지 잘리지 않게) */
+  .reels-page .cvp-aside {
+    position: sticky; top: 24px; align-self: start;
+    min-width: 0;
+    max-height: calc(100dvh - 48px); overflow-y: auto; scrollbar-width: thin;
+    padding-top: 18px;   /* 헤드라인 상단 여백(18px)과 첫 괘선 높이를 맞춘다 */
+  }
+  .reels-page .cvp-aside .cvp-sources { margin-top: 0; padding-top: 14px; flex-direction: column; gap: 0; }
+  .reels-page .cvp-aside .cvp-fine { padding-top: 12px; margin-top: 4px; border-top: 1px solid var(--line); }
+  .reels-page .cvp-aside .cvp-forum { margin-top: 20px; }
+  /* 검은 타일 — 레일 폭(≤400) 이라 --dk-read 이내. gutter 0 이므로 안쪽 여백을 직접 준다 */
+  .reels-page .cvp-aside .cvp-forum-tile { margin: 0; padding: 22px 20px 8px; max-width: var(--dk-read); }
+}
+@media (min-width: 1440px) {
+  .reels-page .cvp {
+    --cvp-aside: 360px;
+    --cvp-gap: 56px;
+    --t-body: 18px;   /* 본문 17→18 */
+    --t-col: 16px;    /* 두 칼럼 요약 15→16 */
+  }
+  .reels-page .cvp-list .cvp-rows { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1800px) {
+  .reels-page .cvp { --cvp-aside: 400px; --cvp-gap: 64px; }
+  .reels-page .cvp-list .cvp-rows { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* 데스크탑 다단 격자 — keep-all 로 못 끊는 긴 토큰("폭염·새끼돼지")이 셀 밖으로 넘치지 않게 */
+@media (min-width: 1100px) {
+  .reels-page .cvp-list .cvp-row-link { min-width: 0; }
+  .reels-page .cvp-list .cvp-row-title { overflow-wrap: anywhere; }
+}

@@ -1,0 +1,335 @@
+/* ==========================================================================
+   story.css — 4페이지 카드 스토리(<CardStory>) · 「일점 지면」 문법
+   표지(사진 52% + 종이 헤드라인 + 'AI가 정리' 요약 문단) → 광역 ⋯ → 기초 ▬ → 댓글(작성기).
+   가로 스냅 스크롤 한 줄, 상단 도트 4개(현재 = 18px 잉크 막대). 카드·라운드·그림자
+   없음, 등장 애니메이션 없음(페이지 전환은 스냅뿐). 색은 스코프 변수를 물려받고
+   (--paper/--ink/--sub/--line/--macro/--micro) 없으면 기획안 hex 로 떨어진다.
+   넘기기 안내: 표지 하단 문구(.cs-hint) · 우측 잉크 띠(.cs-band) · 하단 "◂ 이전 · 다음 ▸"
+   (.cs-nav). ④ 페이지는 작성기(.cs-talk + <OpinionComposer> 종이 톤) 때문에 세로 스크롤.
+   헤드라인 두 줄(광역/기초)은 같은 굵기 700·같은 크기 — 기초 쪽만 굵게 두면 "기초 입장 앱"처럼
+   읽힌다는 검토 의견 반영. 구분은 마커(⋯/▬)와 라벨만.
+   ========================================================================== */
+
+.cstory {
+  --cs-paper: var(--paper, #f4f5f7);
+  --cs-ink: var(--ink, #111111);
+  --cs-sub: var(--sub, #5b6170);
+  --cs-line: var(--line, #1c2130);
+  --cs-macro: var(--macro, #6706d3);
+  --cs-micro: var(--micro, #e66bd2);
+  --cs-stamp: #e66bd2;          /* 'AI가 정리' 분홍 필드(잉크 글자) — 유채 면 5% 이내 */
+  --cs-gutter: 0px;             /* 문서 페이지: 부모 컬럼이 이미 기준선을 잡는다 */
+  --cs-fs-head: 26px;           /* 헤드라인 */
+  --cs-fs-title: 22px;          /* 페이지 제목 */
+  --cs-fs-body: 17px;           /* 본문 */
+  --cs-fs-meta: 15px;           /* 메타·아이브로우 */
+  --cs-dots-h: 24px;            /* 상단 도트 행 */
+  --cs-nav-h: 44px;             /* 하단 "◂ 이전 · 다음 ▸" 행(탭 타깃 44px) */
+  --cs-band-w: 24px;            /* 우측 반투명 잉크 띠 — 페이지 본문은 이만큼 오른쪽을 비운다 */
+
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-rows: var(--cs-dots-h) minmax(0, 1fr) var(--cs-nav-h);
+  background: var(--cs-paper);
+  color: var(--cs-ink);
+  word-break: keep-all;
+  overflow: hidden;
+}
+/* 홈 덱 마운트 — 좌측 기준선은 덱 거터, 높이는 슬라이드가 준 --cs-h */
+.cstory.fill {
+  --cs-gutter: var(--rl-gutter, 20px);
+  height: var(--cs-h, 520px);
+}
+/* 슬라이드 안 가용 높이 = 100dvh − topbar(49px) − 슬라이드 padding(40 / 140+safe-area) */
+.reels-root .slide[data-kind="crossview-cards"] {
+  --cs-h: clamp(380px, calc(100dvh - 49px - 40px - 140px - env(safe-area-inset-bottom, 0px)), 760px);
+}
+@media (min-width: 768px) {
+  .reels-root .slide[data-kind="crossview-cards"] {
+    --cs-h: clamp(420px, calc(100dvh - 49px - 48px - 120px - env(safe-area-inset-bottom, 0px)), 760px);
+  }
+}
+.cstory :focus-visible { outline: 2px solid var(--cs-ink); outline-offset: -2px; border-radius: 0; }
+
+/* ── 상단 도트 4개 — 현재 페이지는 18×3px 잉크 막대, 나머지 6px 보조 점 ──── */
+.cs-dots {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 var(--cs-gutter);
+}
+.cs-dot {
+  display: block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--cs-sub);
+}
+.cs-dot.is-on { width: 18px; height: 3px; border-radius: 0; background: var(--cs-ink); }
+.cs-dots-n {
+  margin-left: auto; font-size: var(--cs-fs-meta); font-weight: 500; color: var(--cs-sub);
+  font-variant-numeric: tabular-nums; line-height: 1;
+}
+
+/* ── 가로 스냅 스크롤러 — 각 페이지 100% 폭 ────────────────────────────
+   touch-action 은 pan-x 만 잠그면 손가락이 스토리 위에 있을 때 덱의 세로 스와이프가
+   막히므로 pan-x pan-y 로 두고, 축 선택은 브라우저(첫 제스처 방향)에 맡긴다.
+   가로 끝에서의 체이닝만 contain 으로 끊는다(뒤로가기 제스처·덱 오작동 방지). */
+.cs-pages {
+  display: flex;
+  min-height: 0; height: 100%;
+  overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.cs-pages::-webkit-scrollbar { display: none; }
+.cs-page {
+  flex: 0 0 100%; width: 100%; min-height: 0;
+  scroll-snap-align: start; scroll-snap-stop: always;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  background: var(--cs-paper);
+}
+
+/* ── ① 표지 — 사진 52% + 종이 블록의 헤드라인(⋯/▬ 두 줄) + AI 요약 한 문단 ──
+   사진이 여전히 표지의 주인공(절반 이상). 요약은 말줄임 없이 전체를 두되, 활자 블록이
+   높이를 넘기면 그 블록만 세로 스크롤(스크롤바 숨김) — ④ 페이지와 같은 방식. */
+.cs-cover { position: relative; }
+.cs-photo { flex: 0 0 52%; min-height: 0; height: 52%; }
+.cs-cover-txt {
+  flex: 1 1 auto; min-height: 0;
+  padding: 12px calc(var(--cs-gutter) + var(--cs-band-w)) 8px var(--cs-gutter);
+  display: grid; align-content: start; gap: 8px;
+  overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.cs-cover-txt::-webkit-scrollbar { display: none; }
+/* 실제로 넘칠 때만 card-story 가 tabIndex=0 을 붙인다(키보드 스크롤). 포커스 링은 안쪽 2px 잉크 — overflow 에 잘리지 않게 */
+.cs-cover-txt[tabindex]:focus-visible { outline: 2px solid var(--cs-ink); outline-offset: -2px; }
+/* 안내 문구가 보일 때는 헤드라인 아래를 그만큼 비운다(겹침 방지) */
+.cstory.show-hint .cs-cover-txt { padding-bottom: 48px; }
+/* 표지 하단 큰 안내 — 17px 700 잉크. 한 번 넘겨 본 사용자에게는 찍히지 않는다 */
+.cs-hint {
+  position: absolute; left: var(--cs-gutter); right: calc(var(--cs-gutter) + var(--cs-band-w)); bottom: 8px;
+  margin: 0; padding-top: 6px;
+  border-top: 1px solid var(--cs-line);
+  font-size: var(--cs-fs-body); font-weight: 700; line-height: 1.4; color: var(--cs-ink);
+  background: var(--cs-paper);
+}
+/* 사진 없는 폴백 — 괘선 두 줄 사이 헤드라인만(위 여백은 자동 중앙) */
+.cs-cover-txt.no-photo { align-content: center; }
+.cs-rule { border: 0; border-top: 1px solid var(--cs-line); height: 0; margin: 0; }
+.cs-head {
+  display: grid; gap: 2px; margin: 0;
+  font-size: var(--cs-fs-head); line-height: 1.3; font-weight: 700;
+  letter-spacing: -0.01em; color: var(--cs-ink); text-wrap: balance;
+}
+.cs-line { display: grid; grid-template-columns: 24px 1fr; column-gap: 8px; align-items: start; }
+.cs-line.plain { grid-template-columns: 1fr; }
+/* 광역 줄·기초 줄 같은 굵기(700)·같은 크기 — 무게 차이로 한쪽을 편들지 않는다 */
+.cs-line .cs-text { font-weight: 700; }
+
+/* 표지 AI 요약 — 17px 잉크, 좌측 1px 괘선. 첫머리 인라인 'AI가 정리' 분홍 스탬프(14px) */
+.cs-summary {
+  margin: 0;
+  border-left: 1px solid var(--cs-line); padding-left: 14px;
+  font-size: var(--cs-fs-body); line-height: 1.6; font-weight: 400; color: var(--cs-ink);
+}
+.cs-stamp {
+  display: inline-block; vertical-align: 1px; margin-right: 4px;
+  background: var(--cs-stamp); color: #0b0d12;
+  font-size: 14px; font-weight: 700; line-height: 1; letter-spacing: -0.01em;
+  padding: 4px 6px 5px;
+}
+
+/* 마커 — 색은 이 6px 도형에만. 첫 줄 x-높이 중앙에 앉는다 */
+.cstory .mk { display: inline-flex; align-items: center; gap: 3px; margin-top: calc(0.65em - 3px); }
+.cstory .mk-macro > i { width: 6px; height: 6px; border-radius: 50%; background: var(--cs-macro); }
+.cstory .mk-micro { margin-top: calc(0.65em - 1.5px); }
+.cstory .mk-micro > i { width: 18px; height: 3px; background: var(--cs-micro); }
+/* 아이브로우 안의 마커는 글줄 중앙 */
+.cstory .cs-eyebrow .mk { margin-top: 0; }
+
+/* ── ②③ 광역/기초 — 좌측 1px 세로 괘선, 아이브로우 → 제목 22px → 본문 17px ── */
+.cs-lens { padding: 8px calc(var(--cs-gutter) + var(--cs-band-w)) 12px var(--cs-gutter); }
+.cs-lens-in {
+  height: 100%; min-height: 0;
+  border-left: 1px solid var(--cs-line);
+  padding-left: 14px;
+  display: flex; flex-direction: column; gap: 10px;
+  overflow: hidden;
+}
+.cs-lens-in > * { flex-shrink: 0; }
+.cs-lens-in > .cs-keys { flex-shrink: 1; }
+.cs-eyebrow {
+  display: flex; align-items: center; gap: 8px;
+  font-size: var(--cs-fs-meta); font-weight: 500; color: var(--cs-sub); line-height: 1.4;
+}
+.cs-title {
+  margin: 0;
+  font-size: var(--cs-fs-title); line-height: 1.3; font-weight: 700;
+  letter-spacing: -0.01em; color: var(--cs-ink);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cs-body {
+  margin: 0;
+  font-size: var(--cs-fs-body); line-height: 1.65; font-weight: 400; color: var(--cs-ink);
+  display: -webkit-box; -webkit-line-clamp: 9; -webkit-box-orient: vertical; overflow: hidden;
+}
+/* 핵심 문장 목록이 뒤따르면 요약은 4줄까지만 */
+.cs-body:has(+ .cs-keys) { -webkit-line-clamp: 4; }
+.cs-mi { width: 16px; height: 16px; flex-shrink: 0; color: var(--cs-sub); }
+/* 하단 채움 — 원문 핵심 문장(점선 괘선으로 나눈 목록) + 맨 아래 날짜·원문 보기.
+   .cs-lens-in 은 grid 라 마지막 행이 margin-top:auto 로 바닥에 앉는다 */
+.cs-keys {
+  list-style: none; margin: 4px 0 0; padding: 0;
+  border-top: 1px dotted var(--cs-sub);
+  min-height: 0; overflow: hidden;
+}
+.cs-keys li {
+  padding: 8px 0 8px 14px; position: relative;
+  border-bottom: 1px dotted var(--cs-sub);
+  font-size: var(--cs-fs-meta); line-height: 1.55; color: var(--cs-ink);
+}
+/* 2줄 제한은 안쪽 span 에 — li(padding 있음)에 걸면 아래 padding 으로 3번째 줄 윗부분이 비친다 */
+.cs-keys .cs-key-t {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cs-keys li::before { content: ""; position: absolute; left: 0; top: 16px; width: 6px; height: 6px; border-radius: 50%; background: var(--cs-ink); }
+/* 방송 원문(문장 없음)용 키워드 줄 — 15px, 1px 잉크 테두리 없는 활자 나열 */
+.cs-tags {
+  margin: 4px 0 0; padding: 10px 0 0; border-top: 1px dotted var(--cs-sub);
+  display: flex; flex-wrap: wrap; gap: 6px 14px;
+  font-size: var(--cs-fs-meta); line-height: 1.5; color: var(--cs-ink); font-weight: 500;
+}
+.cs-body:has(+ .cs-tags) { -webkit-line-clamp: 6; }
+.cs-lens-foot {
+  margin: auto 0 0; padding-top: 8px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  font-size: var(--cs-fs-meta); color: var(--cs-sub);
+}
+.cs-lens-foot a {
+  color: var(--cs-ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
+  min-height: 44px; display: inline-flex; align-items: center;
+}
+.cs-lens-foot a:hover { color: var(--cs-line); }
+html[data-contrast="high"] .cs-keys, html[data-contrast="high"] .cs-keys li { border-color: var(--cs-ink); }
+
+/* ── ④ 댓글 — 머리 활자 + 공론장 링크 + 한 줄 작성기, 맨 아래 링크 행
+   작성기(이름·비번 펼침)까지 들어가야 하므로 이 페이지만 세로 스크롤을 허용한다. ── */
+.cs-wrap {
+  padding: 8px calc(var(--cs-gutter) + var(--cs-band-w)) 4px var(--cs-gutter); gap: 12px;
+  overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.cs-wrap::-webkit-scrollbar { display: none; }
+/* 마지막 페이지에서는 띠가 사라지므로 오른쪽 여백을 거터로 되돌린다 */
+.cstory.is-last .cs-wrap,
+.cstory.is-last .cs-lens { padding-right: var(--cs-gutter); } /* 3페이지 모드의 마지막 기초 페이지 포함 */
+/* 스크롤 컨테이너 안에서 작성기·링크 행이 찌그러지지 않게 */
+.cs-wrap > * { flex-shrink: 0; }
+/* 페이지 첫 요소가 된 댓글 블록 — 위 괘선은 페이지 상단과 겹치므로 뺀다 */
+.cs-wrap > .cs-talk:first-child { border-top: 0; padding-top: 4px; }
+.cs-links {
+  margin-top: auto;
+  border-top: 1px solid var(--cs-line);
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 16px;
+  padding-top: 2px;
+}
+.cs-more {
+  font-size: var(--cs-fs-body); font-weight: 700; color: var(--cs-ink);
+  text-decoration: underline; text-underline-offset: 3px;
+  padding: 10px 0; /* 탭 타깃 44px */
+}
+.cs-src { margin-left: auto; display: flex; gap: 14px; }
+.cs-src a {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--cs-fs-meta); font-weight: 500; color: var(--cs-sub);
+  text-decoration: underline; text-underline-offset: 3px;
+  padding: 12px 0;
+}
+.cs-src a:hover, .cs-more:hover { color: var(--cs-line); }
+
+/* ── ④ 댓글 진입 — "이 사안에 의견 남기기" + <OpinionComposer tone="paper"> ──
+   작성기 자체는 app/composer.css(.opc)가 그린다. 여기서는 머리 활자와 자리만. */
+.cs-talk { display: grid; gap: 2px; border-top: 1px solid var(--cs-line); padding-top: 10px; }
+.cs-talk .cs-forum { padding: 6px 0 10px; }
+.cs-talk-k { margin: 0; font-size: var(--cs-fs-meta); font-weight: 700; line-height: 1.5; color: var(--cs-ink); }
+/* 작성 성공 — "공론장에 올렸습니다 → 보러 가기" */
+.cs-posted { margin: 0; font-size: var(--cs-fs-body); font-weight: 700; line-height: 1.5; color: var(--cs-ink); }
+.cs-posted a { color: inherit; text-decoration: underline; text-underline-offset: 3px; padding: 8px 0; }
+/* "이 사안 댓글 N개 · 공론장에서 이어 보기 →" — 17px 700 밑줄, 탭 타깃 44px */
+.cs-forum {
+  width: fit-content; max-width: 100%;
+  font-size: var(--cs-fs-body); font-weight: 700; line-height: 1.5; color: var(--cs-ink);
+  text-decoration: underline; text-underline-offset: 3px;
+  padding: 10px 0;
+}
+.cs-forum:hover, .cs-posted a:hover { color: var(--cs-line); }
+
+/* ── 하단 진행 안내 — "◂ 이전 · 다음 ▸" 15px, 행 높이 44px(탭 타깃) ─────── */
+.cs-nav {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 0 var(--cs-gutter);
+  border-top: 1px solid var(--cs-line);
+  font-size: var(--cs-fs-meta); color: var(--cs-sub); line-height: 1;
+}
+.cs-nav-btn {
+  appearance: none; background: transparent; border: 0; margin: 0; border-radius: 0;
+  min-height: 44px; min-width: 44px; padding: 0 12px;
+  font: inherit; font-size: var(--cs-fs-meta); font-weight: 700; color: var(--cs-ink); cursor: pointer;
+}
+/* 끝 페이지: aria-disabled(포커스 유지) — 시각은 disabled 와 같게 */
+.cs-nav-btn:disabled,
+.cs-nav-btn[aria-disabled="true"] { color: var(--cs-sub); font-weight: 500; cursor: default; }
+.cs-nav-sep { color: var(--cs-sub); }
+
+/* ── 좌우 탭 영역 40px — 화살표 없음. 우측은 잉크 띠(24px) 안쪽에 앉는다 ── */
+.cs-tap {
+  position: absolute; top: var(--cs-dots-h); bottom: var(--cs-nav-h); width: 40px;
+  appearance: none; background: transparent; border: 0; padding: 0; margin: 0;
+  cursor: pointer; z-index: 1; border-radius: 0;
+}
+.cs-tap.prev { left: 0; }
+.cs-tap.next { right: var(--cs-band-w); }
+.cs-tap[hidden], .cs-band[hidden] { display: none; }
+
+/* ── 우측 반투명 잉크 띠 24px — "이쪽으로 넘긴다"는 상시 표지. › 글리프, 누르면 다음 ── */
+.cs-band {
+  position: absolute; top: var(--cs-dots-h); bottom: var(--cs-nav-h); right: 0; width: var(--cs-band-w);
+  appearance: none; border: 0; padding: 0; margin: 0; border-radius: 0;
+  background: rgba(28, 33, 48, 0.55); color: var(--cs-paper);
+  display: grid; place-items: center;
+  font: inherit; font-size: 28px; font-weight: 500; line-height: 1;
+  cursor: pointer; z-index: 2;
+}
+
+/* ── 상세 페이지 — 스토리 아래 "N번째 카드 이미지 저장" 한 줄 ───────────── */
+/* (카드 이미지 저장 링크 .cs-save 는 제거됨 — 우클릭 저장으로 충분) */
+
+/* ── 큰글씨 / 고대비 / reduced-motion ───────────────────────────────── */
+html[data-font-size="large"] .cstory {
+  --cs-fs-head: 30px; --cs-fs-title: 24px; --cs-fs-body: 21px; --cs-fs-meta: 18px;
+}
+html[data-font-size="large"] .cs-stamp { font-size: 16px; }
+/* 고대비: 마커도 잉크(백색)로 — 자리·라벨만으로 구분된다. 스탬프는 분홍 위 검정(9:1) 유지 */
+html[data-contrast="high"] .cstory { --cs-macro: var(--cs-ink); --cs-micro: var(--cs-ink); }
+html[data-contrast="high"] .cs-band { background: var(--cs-ink); }
+@media (prefers-reduced-motion: no-preference) {
+  .cs-pages { scroll-behavior: auto; } /* 전환은 찍힘 — 스무스 스크롤 없음 */
+}
+
+/* ── 데스크탑(≥1100) 크로스뷰 상세 — 스토리 높이 420→560. <CardStory height={420}> 의 인라인
+   height 는 min-height 가 이기므로 컴포넌트 무변경. 4페이지 가로 스냅·도트·내비는 그대로.
+   특이도 (0,2,0) — 큰글씨 모드(html[data-font-size] .cstory = (0,2,1))가 이긴다. ── */
+@media (min-width: 1100px) {
+  .cvp-detail .cstory { min-height: 560px; }
+  /* 데스크탑 상세 스토리(684~868px 폭)는 활자를 한 단계 키워 면을 채운다 */
+  .cvp-detail .cstory { --cs-fs-title: 26px; --cs-fs-body: 19px; --cs-fs-meta: 16px; }
+  .cvp-detail .cstory .cs-keys li { font-size: 17px; padding: 10px 0 10px 16px; }
+  .cvp-detail .cstory .cs-lens-in { gap: 14px; }
+}
+@media (min-width: 1440px) {
+  .cvp-detail .cstory { --cs-fs-body: 19px; --cs-fs-head: 28px; }
+}

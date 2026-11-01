@@ -1,0 +1,435 @@
+/* ==========================================================================
+   temperature.css — 온도계 「검은 세계」 (기획안 (5) 온도계 · (6) 빈 데이터 · (7) 접근성)
+
+   #0b0d12 위 #f4f5f7 활자. 수은 #d90429→#ff6b5e 는 온도에만, 검은 세계 액센트
+   #b18cff / #7ea4ff 는 눈금·링크에만. 카드·라운드·그림자·유리 없음 — 허용 원형은
+   잉크 점·온도계 구근뿐. 괘선 1px(점선 = 아직 없음/로딩, 실선 = 도착).
+   등장 애니메이션 없음(찍힘). 움직이는 것은 수은(차오름 600~1200ms)뿐.
+
+   import: components/temperature/TemperatureBoardView.tsx · IssueTemperatureView.tsx
+           · app/(public)/temperature/loading.tsx
+   데스크탑(≥1100px) 2열 판형(.tw-board/.tw-issue)은 파일 끝 블록 — 모바일 규칙은 손대지 않는다.
+   ========================================================================== */
+
+/* ── 검은 세계 루트 — 문서 컬럼(.reels-page 600px) 안이지만 바닥은 뷰포트 전체 ── */
+.tw {
+  --tw-bg: #0b0d12;
+  --tw-fg: #f4f5f7;
+  --tw-dim: #919191;                       /* 인트로 문장 ①~④ 회색 */
+  --tw-rule: rgba(244, 245, 247, 0.28);    /* 검은 세계 위 괘선 */
+  --tw-violet: #b18cff;                    /* 눈금·링크 */
+  --tw-blue: #7ea4ff;                      /* 눈금·링크 */
+  --tw-hg: #d90429;                        /* 수은 */
+  --tw-hg2: #ff6b5e;                       /* 수은 상단 */
+  --tw-gutter: 20px;                       /* 좌측 기준선 — 폰 20 / 데스크탑 76 */
+  --tw-mast: 25px;
+  --tw-num: 40px;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  padding: 24px var(--tw-gutter) 48px;
+  background: var(--tw-bg);
+  color: var(--tw-fg);
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
+}
+/* 뷰포트 전체를 검게 — 600px 컬럼 밖도 검은 세계 (z -1 = 이 스택 안에서 맨 뒤) */
+.tw::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--tw-bg);
+}
+@media (min-width: 768px) {
+  .tw { --tw-gutter: 76px; --tw-mast: 40px; --tw-num: 56px; }
+}
+html[data-font-size="large"] .tw { --tw-mast: 30px; --tw-num: 48px; font-size: 21px; }
+
+.tw :focus-visible { outline: 2px solid var(--tw-fg); outline-offset: 2px; border-radius: 0; }
+.tw a { color: inherit; text-decoration: none; }
+.tw a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.tw ::selection { background: rgba(177, 140, 255, 0.35); }
+
+/* 활자 역할 */
+.tw-mast {
+  font-size: var(--tw-mast); font-weight: 700; line-height: 1.2;
+  letter-spacing: -0.01em; color: var(--tw-fg); margin: 0;
+}
+.tw-meta {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px;
+  margin: 6px 0 0; color: var(--tw-dim);
+  font-size: 15px; font-weight: 500; line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.tw-eyebrow {
+  display: block; margin: 0 0 6px;
+  font-size: 15px; font-weight: 500; color: var(--tw-dim); letter-spacing: 0.02em;
+}
+.tw-h2 { font-size: 20px; font-weight: 700; line-height: 1.3; margin: 0; }
+@media (min-width: 768px) { .tw-h2 { font-size: 22px; } }
+.tw-num { font-size: var(--tw-num); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.tw-num small { font-size: 0.5em; font-weight: 700; margin-left: 2px; }
+.tw-dim { color: var(--tw-dim); }
+.tw-link { color: var(--tw-blue); font-weight: 500; }
+.tw-link:focus-visible { outline-color: var(--tw-blue); }
+.tw-p { margin: 0; font-size: 17px; line-height: 1.65; }
+.tw-note { margin: 0; color: var(--tw-dim); font-size: 15px; line-height: 1.6; }
+
+/* 괘선 — 실선(도착) · 점선(아직 없음/로딩) */
+.tw-rule { border: 0; border-top: 1px solid var(--tw-rule); margin: 0; }
+.tw-rule.is-dotted { border-top-style: dotted; }
+.tw-section { padding-top: 14px; margin-top: 28px; border-top: 1px solid var(--tw-rule); }
+.tw-section.is-pending { border-top-style: dotted; }
+.tw-section-head {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 4px 12px; margin-bottom: 14px;
+}
+.tw-section-head .tw-meta { margin: 0; }
+
+/* 갱신 상태 — 활자만 */
+.tw-status { display: inline-flex; align-items: baseline; gap: 8px; color: var(--tw-dim); }
+.tw-status.is-fresh { color: var(--tw-fg); }
+.tw-status-dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--tw-dim); vertical-align: middle; margin-right: 2px;
+}
+.tw-status.is-live .tw-status-dot { background: var(--tw-fg); }
+.tw-status button {
+  min-height: 44px; padding: 0 10px; margin: -10px 0;
+  background: none; border: 0; border-bottom: 1px solid var(--tw-blue);
+  color: var(--tw-blue); font: inherit; font-weight: 500; cursor: pointer;
+}
+.tw-status button:disabled { opacity: 0.5; cursor: default; }
+
+/* ── 히어로 — 좌 TOP5 5줄 · 우 점묘 온도계(뷰포트 60%) ─────────────────── */
+.tw-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 16px;
+  align-items: start;
+  margin-top: 28px;
+}
+.tw-thermo {
+  position: relative;
+  height: 60vh; height: 60dvh;
+  min-height: 300px;
+  display: flex; align-items: flex-start; justify-content: flex-end;
+}
+.tw-thermo canvas { display: block; height: 100%; }
+.tw-thermo-cap {
+  position: absolute; left: 0; bottom: 100%; margin-bottom: 4px;
+  font-size: 15px; font-weight: 500; color: var(--tw-dim); white-space: nowrap;
+}
+.tw-thermo-cap.is-rank { color: var(--tw-violet); }
+
+/* TOP5 — 인트로 문장 레이아웃: 25px 700, 줄 간격 60×0.62≈37px, 강조줄만 #f4f5f7 */
+.tw-lines { list-style: none; margin: 0; padding: 0; display: grid; align-content: start; }
+.tw-line { margin: 0; padding: 0 0 12px; }
+.tw-line a, .tw-line .tw-line-txt {
+  display: block; color: var(--tw-dim);
+  font-size: 25px; font-weight: 700; line-height: 1.5;
+  letter-spacing: -0.01em; text-wrap: balance;
+}
+.tw-line.is-top a, .tw-line.is-top .tw-line-txt { color: var(--tw-fg); }
+.tw-line a:hover { text-decoration: none; }
+.tw-line a:hover .tw-line-label { text-decoration: underline; text-underline-offset: 4px; }
+.tw-line-rank { font-variant-numeric: tabular-nums; margin-right: 8px; }
+.tw-line-sub {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px;
+  font-size: 15px; font-weight: 500; line-height: 1.5;
+  color: var(--tw-dim); font-variant-numeric: tabular-nums;
+}
+.tw-line.is-top .tw-line-sub { color: var(--tw-fg); }
+.tw-line-temp { font-weight: 800; font-size: 17px; }
+.tw-line.is-top .tw-line-temp { font-size: var(--tw-num); line-height: 1; font-weight: 800; letter-spacing: -0.02em; }
+.tw-line.is-top .tw-line-temp small { font-size: 0.5em; font-weight: 700; }
+@media (min-width: 768px) {
+  .tw-hero { gap: 0 32px; }
+}
+
+/* 잠잠 문구 */
+.tw-calm { margin: 20px 0 0; color: var(--tw-fg); font-size: 17px; line-height: 1.65; }
+.tw-calm em { font-style: normal; font-weight: 700; }
+
+/* ── 12사안 가는 수은주 12개 ───────────────────────────────────────────── */
+.tw-cols { position: relative; margin-top: 24px; } /* 위 여백 = 7일 잔상 캡션 자리 */
+.tw-cols-area {
+  position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+  height: 180px; border-bottom: 1px solid var(--tw-rule);
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+}
+/* 눈금(20도 간격) — 점선, 검은 세계 액센트 */
+.tw-cols-area::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: repeating-linear-gradient(to top, transparent 0 calc(20% - 1px), rgba(126, 164, 255, 0.28) calc(20% - 1px) 20%);
+}
+.tw-cols-area.is-rank::before {
+  background-image: repeating-linear-gradient(to top, transparent 0 calc(8.333% - 1px), rgba(177, 140, 255, 0.28) calc(8.333% - 1px) 8.333%);
+}
+/* 기둥 셀 = range 시맨틱(role=slider, 세로). 탭 타깃 = 셀 전체(높이 180px ≥ 44px).
+   margin 0 1px = 인접 셀 hit 영역 사이 2px 틈(실수 탭 완화). grid 트랙은 그대로라
+   기둥 중심·유령 점(left %)·순위 숫자 정렬은 변하지 않는다. */
+.tw-col {
+  position: relative; height: 100%; min-width: 0; margin: 0 1px;
+  cursor: pointer; touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+.tw-col:focus-visible { outline: 2px solid var(--tw-fg); outline-offset: -2px; }
+.tw-col-bar {
+  position: absolute; left: 50%; bottom: 0; width: 2px; margin-left: -1px;
+  height: 0;
+  background: linear-gradient(to top, var(--tw-hg), var(--tw-hg2)); /* 수은 — 온도에만 허용된 그라디언트 */
+  transition: height 900ms cubic-bezier(0.33, 1, 0.68, 1);            /* 차오름 */
+}
+.tw-col.is-filled .tw-col-bar { height: var(--h, 0%); }
+.tw-col.is-calm .tw-col-bar { background: var(--tw-dim); min-height: 2px; } /* 잠잠은 회색(0° 도 바닥 2px 로 자리 표시) */
+.tw-col.is-selected .tw-col-bar { width: 4px; margin-left: -2px; }
+/* 선택 기둥 꼭대기 점 */
+.tw-col.is-selected .tw-col-bar::after {
+  content: ""; position: absolute; left: 50%; top: 0; width: 8px; height: 8px;
+  transform: translate(-50%, -50%); border-radius: 50%; background: var(--tw-fg);
+}
+/* prev_rank 자리의 회색 유령 점 */
+.tw-ghost-dot {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--tw-dim); opacity: 0.55; transform: translate(-50%, 50%);
+  pointer-events: none;
+}
+/* 길게 눌러 펼치는 7일 잔상 기둥 — 반투명 수은 */
+.tw-col-ghosts {
+  position: absolute; left: calc(50% + 4px); bottom: 0; z-index: 2;
+  display: flex; align-items: flex-end; gap: 2px; height: 100%;
+  pointer-events: none;
+}
+.tw-col-ghosts i {
+  display: block; width: 2px; height: var(--h, 0%);
+  background: linear-gradient(to top, var(--tw-hg), var(--tw-hg2));
+  opacity: 0.38;
+}
+.tw-col-ghosts i.is-empty { background: var(--tw-dim); opacity: 0.3; height: 2px; }
+.tw-col-ghosts.is-loading i { background: var(--tw-dim); opacity: 0.2; height: 2px; }
+.tw-col-ghost-cap {
+  position: absolute; left: calc(50% + 4px); bottom: 100%; margin-bottom: 4px; z-index: 2;
+  font-size: 12px; font-weight: 500; color: var(--tw-dim); white-space: nowrap;
+  pointer-events: none;
+}
+.tw-col:nth-child(n + 9) .tw-col-ghosts { left: auto; right: calc(50% + 4px); flex-direction: row-reverse; }
+.tw-col:nth-child(n + 9) .tw-col-ghost-cap { left: auto; right: calc(50% + 4px); }
+/* 순위 숫자 12개 */
+.tw-cols-rank {
+  list-style: none; margin: 0; padding: 6px 0 0;
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+  color: var(--tw-dim); font-size: 12px; font-weight: 500; text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.tw-cols-rank li.is-selected { color: var(--tw-fg); font-weight: 700; }
+.tw-cols-hint { margin: 8px 0 0; color: var(--tw-dim); font-size: 15px; line-height: 1.5; }
+
+/* 선택된 사안 — 이름·온도·구성 3지표 */
+.tw-focus { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--tw-rule); display: grid; gap: 10px; }
+.tw-focus-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.tw-focus-head .tw-h2 { flex: 1 1 auto; min-width: 0; }
+
+/* 구성 3지표 — 짧은 기둥 (빈도·주제 집중 = 실선, 감정 = 없으면 점선) */
+.tw-idx { display: grid; gap: 8px; margin: 0; }
+.tw-idx-row { display: grid; grid-template-columns: 5.5em 1fr 3.2em; align-items: center; gap: 10px; }
+.tw-idx-row dt { margin: 0; font-size: 15px; font-weight: 500; color: var(--tw-dim); }
+.tw-idx-row dd { margin: 0; }
+.tw-idx-row dd.tw-idx-val { font-size: 15px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.tw-idx-track { position: relative; height: 6px; border-bottom: 1px solid var(--tw-rule); }
+.tw-idx-track.is-dotted { border-bottom-style: dotted; }
+.tw-idx-fill { position: absolute; left: 0; bottom: -1px; height: 6px; width: var(--w, 0%); background: var(--tw-blue); }
+.tw-idx-row[data-key="frequency"] .tw-idx-fill { background: var(--tw-violet); }
+.tw-idx-row[data-key="sentimentVar"] .tw-idx-fill { background: linear-gradient(to right, var(--tw-hg), var(--tw-hg2)); }
+
+/* ── 온도 배지(텍스트+점) ─────────────────────────────────────────────── */
+.tw-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.tw-badge.sm { font-size: 15px; gap: 6px; }
+.tw-badge.md { font-size: 17px; }
+.tw-badge-dot {
+  display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--tw-hg, #d90429);
+}
+.tw-badge[data-band="calm"] .tw-badge-dot { background: #919191; }
+.tw-badge[data-band="mild"] .tw-badge-dot { opacity: 0.45; }
+.tw-badge[data-band="warm"] .tw-badge-dot { opacity: 0.7; }
+.tw-badge[data-band="hot"] .tw-badge-dot { opacity: 1; }
+.tw-badge[data-band="very-hot"] .tw-badge-dot { width: 12px; height: 12px; box-shadow: 0 0 0 2px var(--tw-bg, #0b0d12), 0 0 0 3px var(--tw-hg, #d90429); }
+.tw-badge-label { font-weight: 500; }
+
+/* 순위 변동 — 활자 */
+.tw-rank { display: inline-flex; align-items: baseline; gap: 2px; font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--tw-dim); }
+.tw-rank.is-up { color: var(--tw-fg); font-weight: 700; }
+.tw-rank.is-new { color: var(--tw-violet); font-weight: 700; letter-spacing: 0.06em; }
+
+/* ── 범례 — 활자 + 점 ───────────────────────────────────────────────── */
+.tw-legend { position: relative; display: inline-block; }
+.tw-legend-btn {
+  min-height: 44px; padding: 0; background: none; border: 0;
+  border-bottom: 1px solid var(--tw-blue); color: var(--tw-blue);
+  font: inherit; font-size: 15px; font-weight: 500; cursor: pointer;
+}
+.tw-legend-panel {
+  position: absolute; left: 0; top: calc(100% + 8px); z-index: 20;
+  width: min(320px, calc(100vw - 2 * var(--tw-gutter)));
+  padding: 14px 16px; background: var(--tw-bg);
+  border: 1px solid var(--tw-fg); border-radius: 0; box-shadow: none;
+}
+.tw-legend-panel .tw-bands { display: grid; gap: 6px; }  /* 패널 안에서는 세로로 쌓는다 */
+
+/* ── 추이 — 도트 스파크라인 ───────────────────────────────────────────────
+   활자는 전부 SVG 밖 HTML(viewBox 축소로 9px 가 되던 문제). 그림 영역(.tw-trend-plot)은
+   SVG viewBox 와 같은 비율이라 눈금은 top %, 시각은 left % 로 그대로 맞는다. */
+.tw-trend { margin: 0; }
+.tw-trend-frame { padding: 10px 0 26px 40px; }              /* 좌 = 눈금 자리, 하 = 시각 자리 */
+.tw-trend-plot { position: relative; }
+.tw-spark { display: block; width: 100%; height: auto; overflow: visible; }
+.tw-trend-y, .tw-trend-x {
+  list-style: none; margin: 0; padding: 0; position: absolute; pointer-events: none;
+  color: var(--tw-dim); font-size: 15px; font-weight: 500; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.tw-trend-y { top: 0; bottom: 0; right: calc(100% + 8px); width: 32px; }  /* 눈금은 그림에서 8px 띄운다 */
+.tw-trend-y li { position: absolute; right: 0; transform: translateY(-50%); }
+.tw-trend-x { left: 0; right: 0; top: 100%; margin-top: 8px; height: 1em; }
+.tw-trend-x li { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.tw-trend-x li[data-edge="start"] { transform: none; }
+.tw-trend-x li[data-edge="end"] { transform: translateX(-100%); }
+.tw-trend-legend { margin-top: 8px; }
+.tw-spark-caption { margin: 10px 0 0; color: var(--tw-dim); font-size: 15px; display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
+html[data-font-size="large"] .tw-trend-y,
+html[data-font-size="large"] .tw-trend-x,
+html[data-font-size="large"] .tw-spark-caption { font-size: 17px; }
+html[data-font-size="large"] .tw-trend-frame { padding-left: 46px; padding-bottom: 30px; }
+html[data-font-size="large"] .tw-trend-y { width: 38px; }
+
+/* ── 온도 5구간 목록(점 + 이름 + 범위) — 범례 패널·차트 범례·히어로 안내 공용 ── */
+.tw-bands { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.tw-bands li { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 500; line-height: 1.5; }
+.tw-bands li .tw-badge-dot { flex: 0 0 auto; }
+.tw-bands li b { font-weight: 700; }
+.tw-bands li span { color: var(--tw-dim); font-variant-numeric: tabular-nums; }
+html[data-font-size="large"] .tw-bands li { font-size: 17px; }
+
+/* 히어로 산출 안내(데스크탑만) · 상세 레일(데스크탑만) 공용 정의 목록 */
+.tw-hero-dl { margin: 0; display: grid; gap: 6px; }
+.tw-hero-dl > div { display: grid; grid-template-columns: 6.5em minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.tw-hero-dl dt { margin: 0; color: var(--tw-dim); font-size: 15px; font-weight: 500; }
+.tw-hero-dl dd { margin: 0; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+html[data-font-size="large"] .tw-hero-dl dt, html[data-font-size="large"] .tw-hero-dl dd { font-size: 17px; }
+/* 관련 기사(사안 상세) — 괘선 목록, 매체·날짜 13px 보조 → 제목 17px 700(원문 링크) → 크로스뷰 링크 */
+.tw-articles { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--tw-rule); }
+.tw-article { padding: 14px 0; border-bottom: 1px solid var(--tw-rule); display: grid; gap: 4px; }
+.tw-article-meta { margin: 0; font-size: 13px; font-weight: 500; color: var(--tw-sub, #c3c7d1); }
+.tw-article-title { font-size: 17px; font-weight: 700; line-height: 1.45; color: inherit; text-decoration: none; }
+a.tw-article-title:hover, a.tw-article-title:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+.tw-article-cv { font-size: 14px; justify-self: start; }
+html[data-font-size="large"] .tw-article-title { font-size: 20px; }
+.tw-hero-info, .tw-issue-aside { display: none; }         /* 모바일은 숨김 — 데스크탑 블록에서 켠다 */
+
+/* 감정 도넛(데이터 있을 때만) — 검은 세계 톤 */
+.tw-donut { margin: 0; }
+.tw-donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+.tw-donut-center b { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.tw-donut-center span { font-size: 15px; color: var(--tw-dim); margin-top: 4px; }
+
+/* 상세 헤더 */
+.tw-issue-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 16px; align-items: start; margin-top: 24px; }
+.tw-issue-head .tw-thermo { height: 40vh; height: 40dvh; min-height: 220px; }
+.tw-issue-title { margin: 0; font-size: 26px; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+@media (min-width: 768px) { .tw-issue-title { font-size: 28px; } }
+.tw-issue-temp { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-top: 16px; }
+.tw-keywords { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--tw-dim); font-size: 15px; font-weight: 500; }
+.tw-back { display: inline-flex; align-items: center; min-height: 44px; gap: 6px; color: var(--tw-blue); font-size: 15px; font-weight: 500; }
+
+/* 빈 상태 / 로딩 — 점선 괘선만, 시머 없음 */
+.tw-empty { margin: 0; padding: 32px 0; border-top: 1px dotted var(--tw-rule); border-bottom: 1px dotted var(--tw-rule); color: var(--tw-dim); font-size: 17px; }
+.tw-loading { display: grid; gap: 0; }
+.tw-loading .tw-rule { margin-top: 36px; }
+.tw-loading .tw-rule + .tw-rule { margin-top: 56px; }
+
+/* 모션 최소화 — 수은 즉시, 유령 없음 */
+@media (prefers-reduced-motion: reduce) {
+  .tw-col-bar { transition: none; }
+}
+
+/* ==========================================================================
+   데스크탑 판형(≥1100px) — 「데스크탑은 화면을 크게 쓴다」 계약. 모바일 규칙 무변경.
+   컨테이너(.reels-page: 가용 908 / 1100 / 1332px)는 app/reels.css 가 잡고, 검은 세계
+   안쪽 여백(--tw-gutter)은 0 — 기둥 보드가 좌 열 폭 전체를 쓴다(기둥 셀 ≈ 45~70px,
+   탭 타깃 개선). 보드(.tw-board): 히어로 = 좌 TOP5(≤ --dk-read) / 우 점묘 온도계 ·
+   12사안 온도판(.tw-cols-section) = 좌 기둥 보드(높이 240) / 우 레일 FocusPanel(sticky).
+   상세(.tw-issue): 머리 활자 ≤ --dk-read, 추이 차트는 열 폭으로 확장(SVG viewBox 비율
+   유지, 상한 1000px). 축·범례 활자는 HTML 이라 폭과 무관하게 15px.
+   히어로 좌 열 아래 .tw-hero-info / 상세 해시태그 아래 .tw-issue-aside 는 데스크탑에서만 보인다.
+   ========================================================================== */
+@media (min-width: 1100px) {
+  .tw { --tw-gutter: 0px; --tw-rail: 340px; padding-top: 32px; }
+
+  /* 히어로 — TOP5 는 본문 폭 안, 온도계는 우측 끝. 온도계가 두 행에 걸치고 좌 열
+     2행에 산출 안내(.tw-hero-info)가 TOP5 아래 이어져 온도계 높이와 비례를 맞춘다 */
+  .tw-board .tw-hero {
+    grid-template-columns: minmax(0, var(--dk-read)) auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    justify-content: space-between; gap: 0 48px;
+  }
+  .tw-board .tw-hero > .tw-thermo { grid-column: 2; grid-row: 1 / 3; }
+  .tw-board .tw-hero-info {
+    display: block; grid-column: 1; grid-row: 2; align-self: start;   /* TOP5 바로 아래 이어 붙인다 */
+    margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--tw-rule);
+  }
+  .tw-board .tw-hero-info .tw-hero-dl { margin-bottom: 16px; }
+  .tw-board .tw-hero-info .tw-eyebrow { margin-bottom: 8px; }
+  .tw-board .tw-hero-info .tw-bands { gap: 6px 24px; }
+  .tw-board .tw-hero-info .tw-note { margin-top: 10px; }
+
+  /* 12사안 온도판 — 좌 보드 / 우 FocusPanel 레일 */
+  .tw-board .tw-cols-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--tw-rail);
+    column-gap: 48px; align-items: start;
+  }
+  .tw-board .tw-cols-section > .tw-section-head { grid-column: 1 / -1; }
+  .tw-board .tw-cols-section > .tw-cols { grid-column: 1; grid-row: 2; margin-top: 24px; }
+  .tw-board .tw-cols-section > .tw-focus {
+    grid-column: 2; grid-row: 2; align-self: start;
+    position: sticky; top: 24px;
+    margin-top: 24px; padding-top: 0; border-top: 0;   /* 레일은 괘선 대신 빈 종이로 가른다 */
+  }
+  .tw-board .tw-cols-area { height: 240px; }            /* 넓어진 셀에 맞춰 수은주도 조금 길게 */
+  .tw-board .tw-cols-rank { font-size: 15px; }          /* 셀이 넓으니 순위 숫자도 읽히는 크기로 */
+
+  /* 상세 — 머리 활자는 본문 폭, 온도계는 우측 끝 */
+  .tw-issue .tw-issue-head {
+    grid-template-columns: minmax(0, var(--dk-read)) auto;
+    justify-content: space-between; gap: 0 48px;
+  }
+  .tw-issue .tw-section { max-width: 1000px; }
+  /* 상세 — 해시태그 아래 레일: 최근 댓글 3건 또는 추이 요약(온도계 옆 빈 면을 채운다) */
+  .tw-issue .tw-issue-aside { display: block; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--tw-rule); }
+  .tw-issue .tw-issue-aside .tw-eyebrow { margin-bottom: 8px; }
+  .tw-recent { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+  .tw-recent li { padding: 10px 0; border-top: 1px dotted var(--tw-rule); }
+  .tw-recent li:first-child { border-top: 0; padding-top: 0; }
+  .tw-recent-body { margin: 0; font-size: 17px; line-height: 1.6; color: var(--tw-fg); }
+  .tw-recent-meta { margin: 4px 0 0; font-size: 15px; font-weight: 500; color: var(--tw-dim); font-variant-numeric: tabular-nums; }
+  html[data-font-size="large"] .tw-recent-body { font-size: 19px; }
+  html[data-font-size="large"] .tw-recent-meta { font-size: 17px; }
+}
+@media (min-width: 1440px) {
+  .tw { --tw-rail: 380px; font-size: 18px; }
+  .tw-p { font-size: 18px; }
+  .tw-issue-title { font-size: 32px; }
+}
+@media (min-width: 1800px) {
+  .tw { --tw-rail: 400px; }
+}

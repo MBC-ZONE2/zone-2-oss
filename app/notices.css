@@ -1,0 +1,336 @@
+/* ==========================================================================
+   notices.css — 공고(관보) 조판 + 마감 밴드(deadline-board)
+   기획안 (5) 공고 = 관보.
+     · 상단 마스트 "옥천 공고" 25px 700(≥768px 40px) + 보조 15px.
+     · 마감 밴드: 주황 #f9a03f 풀블리드 띠(잉크 글자). "N일 후 마감" 40px 800,
+       benefit_label 15px, 가로 선 = 경과 실선 · 남은 기간 점선, 경계의 잉크 점은
+       D-3 이내에서 8→20px 로 커진다. 항목이 없으면 밴드 자체가 렌더되지 않는다.
+     · 게시판 버튼(.nt-boards/.nt-board, 회의 결정 [4]): 전체·공지사항·고시공고·입법예고·채용공고
+       5개. 1px 잉크 테두리 사각 버튼(라운드·그림자 없음), 활성은 잉크 반전(잉크 바닥·종이 글자),
+       min-height 44px 탭 타깃. 좁은 폭에서는 줄바꿈(가로 스크롤 만들지 않는다).
+     · 목록(마감 중심, 검토 의견 [공고 1] + 회의 결정 [5]): 섹션 ① 마감 임박 ② 진행 중
+       ③ 기간 없는 공고. **마감 지난 공고는 목록에 아예 없다**(예전 ④ 접힘 섹션 삭제).
+       섹션 머리 15px 700 + 건수 500.
+       좌 72px 셀 — 날짜 셀("게시 N월" 15px + '일' 40px 800) 또는 D-day 셀("7일" 40px + "남음"
+       15px + "마감 9/8(화)" 13px). "오늘 마감"은 주황(--warning) 활자, 낱말 셀(오늘)은 28px.
+       우 제목 20px 700 전문(줄임 없음) + 부서 · 원문 기간 구간 · "게시 9/5" 15px + "원문 ↗" 굵은 밑줄.
+       같은 셀 값은 1px 괘선으로 묶고 묶음 사이는 2px.
+     · 빈/에러 상태는 점선 괘선 블록 텍스트(점선 = 아직 없음).
+   도면 반영(피그마 코멘트 2026-09-11)
+     · #1  마감 게이지 선(.dl-line)은 **데스크탑(≥1100px)에서만 항목 위**로 — order:-1.
+            모바일(<1100px)은 지금처럼 항목 아래(margin-top:auto)에 둔다.
+     · #3  D-day 셀은 남은 3일 이내면 주황(.nt-dday--urgent). 4일 이상은 잉크색.
+     · #10 제호 보조 설명은 "독자를 위한 공고" 한 마디(page.tsx).
+     · #11 데스크탑 띠는 아래 1px 경계 한 줄만 — 항목마다 있던 상단 괘선은 없앤다.
+   카드·라운드·그림자·유리·그라디언트 없음. 등장 애니메이션 없음(찍힘) — 유일한
+   모션은 마감 선의 '이음'(점선→실선, 400ms outCubic, reduced-motion 이면 0ms).
+   색은 앱 테마 토큰(--foreground/--muted-foreground/--line/--warning)을 쓰므로
+   고대비(data-contrast=high)에서는 자동으로 검은 세계 위 백색 활자가 된다.
+   좌측 기준선 = 폰 20px / ≥640px 76px (문서 페이지 규약 px-5 sm:px-[76px] 와 동일).
+   ========================================================================== */
+
+.nt {
+  --nt-gutter: 20px;
+  --nt-ink: #111111;   /* 주황 띠 위 잉크 — 고대비에서도 띠는 주황이므로 고정값 */
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  color: var(--foreground);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+@media (min-width: 640px) {
+  .nt { --nt-gutter: 76px; }
+}
+
+/* ── 마스트 ───────────────────────────────────────────────────────────── */
+.nt-mast {
+  padding: 28px var(--nt-gutter) 18px;
+}
+.nt-mast-title {
+  margin: 0;
+  font-size: 25px; line-height: 1.15; font-weight: 700; letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+@media (min-width: 768px) {
+  .nt-mast-title { font-size: 40px; }
+}
+.nt-mast-meta {
+  margin: 6px 0 0;
+  font-size: 15px; line-height: 1.5; font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+/* ── 게시판 버튼 — 1px 잉크 테두리, 활성은 반전. 링크라 JS 없이 동작 ────── */
+.nt-boards {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 0 var(--nt-gutter) 18px;
+}
+.nt-board {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 0 14px;
+  border: 1px solid var(--foreground);
+  border-radius: 0;                     /* 「일점 지면」 — 라운드·그림자·글래스 없음 */
+  background: none;
+  color: var(--foreground);
+  font-size: 15px; font-weight: 700; line-height: 1; letter-spacing: -0.01em;
+  text-decoration: none; white-space: nowrap;
+}
+/* 활성 = 잉크 반전(색이 아니라 명암으로 구분 — 고대비 모드에서도 그대로 성립) */
+.nt-board.is-on { background: var(--foreground); color: var(--background); }
+.nt-board:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+@media (hover: hover) {
+  .nt-board:not(.is-on):hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+}
+
+/* ── 마감 밴드 — 주황 풀블리드 띠(컬럼 폭 전체), 잉크 글자 ─────────────── */
+.dl-band {
+  background: var(--warning, #f9a03f);
+  color: var(--nt-ink);
+  /* 시범단 #177: 활자~띠 가장자리 여백 확대(18/6 → 24/14) — "답답하다" */
+  padding: 24px var(--nt-gutter) 14px;
+  /* 도면 #11(검토 2026-09-21 재확인): 경계는 띠 아래 1px 한 줄뿐 — 모바일도 같다 */
+  border-bottom: 1px solid var(--nt-ink);
+}
+.dl-head {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 0 12px;
+  margin: 0 0 6px;
+}
+.dl-head-title {
+  margin: 0;
+  font-size: 15px; line-height: 1.5; font-weight: 700;
+}
+.dl-head-meta {
+  font-size: 15px; line-height: 1.5; font-weight: 500;
+}
+.dl-item {
+  padding: 16px 0 20px;  /* 시범단 #177: 14/16 → 16/20 */
+  /* 항목마다 있던 상단 괘선은 없앴다(도면 #11) — 항목 사이는 아래 점선 게이지(.dl-line)가 이미 가른다.
+     하단 점선은 margin-top:auto 로 바닥에 — 제목 길이가 달라도 위·아래가 맞는다 */
+  display: flex; flex-direction: column;
+}
+.dl-item > .dl-line { margin-top: auto; padding-top: 14px; box-sizing: content-box; }
+/* "N일 후 마감" — 대형 숫자 40px 800 tabular. 0일은 "오늘 마감" */
+.dl-days {
+  margin: 0;
+  font-size: 40px; line-height: 1; font-weight: 800; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.dl-title {
+  margin: 10px 0 0;
+  font-size: 20px; line-height: 1.35; font-weight: 700;
+}
+/* 제목 링크(시범단 #177) — 활자 그대로, 호버·포커스에만 밑줄 */
+.dl-title-link { color: inherit; text-decoration: none; }
+.dl-title-link:hover,
+.dl-title-link:focus-visible { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.dl-title-link:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.dl-meta {
+  display: flex; flex-wrap: wrap; gap: 0 8px;
+  margin: 4px 0 0;
+  font-size: 15px; line-height: 1.5; font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.dl-benefit { font-weight: 700; }
+.dl-src {
+  color: inherit; font-weight: 700;
+  text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px;
+  /* 활자 버튼 — 패딩으로 44px 탭 타깃 */
+  display: inline-block; padding: 8px 0; margin: -8px 0;
+}
+.dl-src:focus-visible,
+.nt-row-link:focus-visible {
+  outline: 2px solid currentColor; outline-offset: 2px;
+}
+
+/* 마감 선 — 경과(왼쪽) 실선 · 남은 기간(오른쪽) 점선. 경계에 잉크 점.
+   --elapsed(0~100) = 30일 창 기준 경과 백분율, --dot = 점 지름(8~20px). */
+.dl-line {
+  display: block; width: 100%; height: 20px;
+  margin-top: 12px;
+  overflow: visible;
+}
+.dl-line-rest {
+  stroke: var(--nt-ink); stroke-width: 1; stroke-dasharray: 3 5; fill: none;
+}
+.dl-line-past {
+  stroke: var(--nt-ink); stroke-width: 1; fill: none;
+  /* 이음 — 점선 위로 실선이 왼쪽부터 이어진다(400ms outCubic) */
+  transform-origin: 0 50%;
+  animation: dl-join 400ms cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+.dl-line-dot { fill: var(--nt-ink); }
+@keyframes dl-join {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dl-line-past { animation: none; }
+}
+
+/* ── 관보 목록 — 좌 72px 날짜 열 + 우 본문 ────────────────────────────── */
+.nt-list {
+  list-style: none; margin: 0; padding: 0 var(--nt-gutter);
+  border-bottom: 2px solid var(--line);
+}
+.nt-group {
+  display: grid; grid-template-columns: 72px minmax(0, 1fr);
+  border-top: 2px solid var(--line);   /* 날짜 사이 2px */
+}
+.nt-day {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 14px 8px 14px 0;
+}
+/* <time> 안의 월·일이 인라인으로 나란히 붙어 "59월"로 읽히던 문제 — 세로 스택 */
+.nt-day time { display: flex; flex-direction: column; align-items: flex-start; }
+.nt-day-u { font-size: 15px; font-weight: 700; margin-left: 2px; letter-spacing: 0; color: var(--foreground); }
+.nt-day-n {
+  white-space: nowrap; /* "31일" 이 좁은 날짜 셀(다단)에서 두 줄로 갈라지지 않게 */
+  font-size: 40px; line-height: 1; font-weight: 800; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+.nt-day-m {
+  margin: 0 0 2px;
+  font-size: 15px; line-height: 1.5; font-weight: 500;
+  color: var(--muted-foreground);
+}
+.nt-rows { list-style: none; margin: 0; padding: 0; min-width: 0; }
+.nt-row + .nt-row { border-top: 1px solid var(--line); }   /* 같은 날짜 안 1px */
+.nt-row-link,
+.nt-row-body {
+  display: block; min-height: 64px;
+  padding: 13px 0 15px;
+  color: inherit; text-decoration: none;
+}
+/* 제목 20px 700 전문 — 줄임 없음 */
+.nt-title {
+  margin: 0;
+  font-size: 20px; line-height: 1.35; font-weight: 700;
+  color: var(--foreground);
+}
+.nt-meta {
+  display: flex; flex-wrap: wrap; gap: 0 8px;
+  margin: 6px 0 0;
+  font-size: 15px; line-height: 1.5; font-weight: 500;
+  color: var(--muted-foreground);
+}
+/* "원문 ↗" — 굵은 밑줄 활자(색 아님, 무게와 선으로 구분) */
+.nt-src {
+  color: var(--foreground); font-weight: 700;
+  text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px;
+}
+@media (hover: hover) {
+  .nt-row-link:hover .nt-title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+}
+
+/* ── 섹션 머리 — ① 마감 임박 ② 진행 중 ③ 기간 없는 공고 ④ 마감 지남 ──────── */
+.nt-sec { margin: 0; }
+.nt-sec + .nt-sec { margin-top: 28px; }
+.nt-sec-title {
+  margin: 0 var(--nt-gutter) 8px;
+  font-size: 15px; line-height: 1.5; font-weight: 700;
+  color: var(--foreground);
+}
+.nt-sec-n { margin-left: 6px; font-weight: 500; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+
+/* D-day 셀 — 숫자 40px 은 .nt-day-n 그대로. 낱말(오늘/마감)은 28px 로 72px 셀 안에.
+   세 자리 숫자(100일 이상)는 26px + 단위 13px — 32px 이면 "101일" 이 72px 셀을 넘어 제목과 겹쳤다(검토 2026-09-21) */
+.nt-day-n--word { font-size: 28px; letter-spacing: -0.01em; }
+.nt-day-n--3 { font-size: 26px; letter-spacing: -0.03em; }
+.nt-day-n--3 .nt-day-u { font-size: 13px; margin-left: 1px; }
+.nt-dday-u { margin: 4px 0 0; color: var(--foreground); font-weight: 700; }
+.nt-dday-d { margin: 2px 0 0; font-size: 13px; }
+/* 마감 임박 강조(도면 #3) — 남은 3일 이내(오늘 마감 포함)면 숫자·낱말이 주황.
+   4일 이상은 잉크색 그대로. 잉크 세계에서 색을 쓰는 몇 안 되는 자리(온도 수은의 빨강과 별개) */
+.nt-dday--urgent .nt-day-n,
+.nt-dday--urgent .nt-dday-u,
+.nt-dday--today .nt-day-n,
+.nt-dday--today .nt-dday-u { color: var(--warning, #f9a03f); }
+/* 원문 기간 구간 — 메타와 같은 15px, 줄바꿈 허용 */
+.nt-period { font-variant-numeric: tabular-nums; }
+
+/* (예전 ④ '마감 지남' 접힘 섹션의 .nt-sec--past 규칙은 삭제 — 회의 결정 [5]로
+   마감 지난 공고는 목록에서 아예 숨기므로 그릴 것이 없다) */
+
+/* ── 빈/에러 상태 — 점선 괘선 블록(점선 = 아직 없음) ─────────────────── */
+.nt-empty {
+  margin: 0 var(--nt-gutter);
+  padding: 28px 0;
+  border-top: 1px dotted var(--line);
+  border-bottom: 1px dotted var(--line);
+  font-size: 17px; line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+/* ── 큰글씨 모드 — 기획안 타이포 표(마스트 30 · 대형 숫자 48 · 제목 24 · 본문 21 · 메타 18) */
+html[data-font-size="large"] .nt-mast-title { font-size: 30px; }
+html[data-font-size="large"] .nt-day-n,
+html[data-font-size="large"] .dl-days { font-size: 48px; }
+html[data-font-size="large"] .nt-title,
+html[data-font-size="large"] .dl-title { font-size: 24px; }
+html[data-font-size="large"] .nt-mast-meta,
+html[data-font-size="large"] .nt-day-m,
+html[data-font-size="large"] .nt-meta,
+html[data-font-size="large"] .dl-head-title,
+html[data-font-size="large"] .dl-head-meta,
+html[data-font-size="large"] .dl-meta { font-size: 18px; }
+html[data-font-size="large"] .nt-empty { font-size: 21px; }
+html[data-font-size="large"] .nt-sec-title { font-size: 18px; }
+html[data-font-size="large"] .nt-board { font-size: 18px; min-height: 48px; padding: 0 16px; }
+html[data-font-size="large"] .nt-day-n--word { font-size: 34px; }
+html[data-font-size="large"] .nt-day-n--3 { font-size: 30px; }
+html[data-font-size="large"] .nt-dday-d { font-size: 15px; }
+html[data-font-size="large"] .nt-group { grid-template-columns: 84px minmax(0, 1fr); }
+
+/* ==========================================================================
+   데스크탑 판형(≥1100px) — .reels-page 컨테이너(좌 --dk-nav · 우 --dk-pad)가 프레임을 주므로
+   --nt-gutter 는 0. 아래 규칙은 전부 ≥1100 블록 안 — 모바일(<1100) 시각은 무변경.
+     · 관보 목록: 섹션(①~④)마다 다단 조판(column-count 2 · ≥1440 3). 묶음(.nt-group)은 단을 넘어
+       쪼개지지 않는다(break-inside: avoid) — 셀(날짜/D-day)은 묶음마다 하나이므로
+       묶음이 통째로 다음 단으로 넘어가 어느 단에서도 셀이 함께 읽힌다. 읽는 순서는
+       단 위→아래→다음 단(정렬 유지). 단 사이 1px 괘선. 섹션 머리는 단 위 한 줄.
+     · 마감 밴드: 항목을 가로로(auto-fit ≥260px). 띠는 좌우 24px 만 컨테이너 밖으로 번진다.
+     · 타이포 ≥1440: 제목 20→22 · 빈 상태 17→18 만. 특이도 (0,2,0) 이하 → 큰글씨 모드가 이긴다.
+   ========================================================================== */
+@media (min-width: 1100px) {
+  .reels-page .nt { --nt-gutter: 0px; }
+
+  /* 마감 밴드 — 잉크 활자는 마스트 기준선(0)에 맞추고 주황 면만 24px 번짐.
+     도면 #11: 경계는 띠 **아래** 1px 한 줄뿐 — 안쪽 항목에는 괘선을 두지 않는다 */
+  .reels-page .dl-band {
+    margin: 0 -24px;
+    padding: 24px 24px 20px;  /* 시범단 #177: 세로 여백 확대 */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    column-gap: 40px;
+    /* 항목 괘선을 지웠으므로(도면 #11) 줄이 접힐 때의 간격은 row-gap 으로 준다 */
+    row-gap: 18px;
+    border-bottom: 1px solid var(--nt-ink);
+  }
+  .reels-page .dl-head { grid-column: 1 / -1; }
+  /* 항목 테두리는 기본 블록에서 이미 없다(도면 #11) — 데스크탑은 안쪽 여백만 줄인다 */
+  .reels-page .dl-item { padding: 0 0 8px; }
+  /* 게이지 선을 항목 맨 위로(도면 #1) — "놓치면 손해" 바로 아래·제목 위.
+     DOM 순서는 그대로라 스크린리더 읽기 순서(제목 → 메타)는 바뀌지 않는다 */
+  .reels-page .dl-item > .dl-line { order: -1; margin: 0 0 6px; padding-top: 0; }
+
+  /* 관보 다단 */
+  .reels-page .nt-list {
+    column-count: 2;
+    column-gap: 48px;
+    column-rule: 1px solid var(--line);
+    column-fill: balance;
+  }
+  .reels-page .nt-group {
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  /* 다단에서 첫 묶음의 2px 상단 괘선이 단마다 머리 괘선이 된다 — 단 사이 높이 차는 ol 하단 2px 로 닫는다 */
+}
+@media (min-width: 1440px) {
+  .reels-page .nt-list { column-count: 3; }
+  .reels-page .nt-title,
+  .reels-page .dl-title { font-size: 22px; }
+  .reels-page .nt-empty { font-size: 18px; }
+}

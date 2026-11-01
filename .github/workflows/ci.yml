@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # 버전은 package.json packageManager 를 따른다
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec tsc --noEmit -p .
+      - run: pnpm exec eslint .
+      # 동작 회귀 — env 없이 도는 검증 스크립트(이동한 상대 import 가 실제로 해석되는지)
+      - run: pnpm tsx scripts/verify/verify-story-dedupe.ts
+      - run: pnpm verify:guards
+      # 빌드는 env 없이도 끝난다(모든 외부 호출은 요청 시점). 외부 키는 CI 에 두지 않는다.
+      - run: pnpm build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"

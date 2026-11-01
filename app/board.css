@@ -1,0 +1,389 @@
+/* ==========================================================================
+   board.css — 홈 데스크탑 보드 「일점(一點) 지면」 (components/reels/desktop-board.tsx)
+   reels.css 의 .board/.b-* 규칙은 건드리지 않는다 — 여기서 .board.bd 로 더 구체적으로
+   덮어쓴다. 종이 #f4f5f7 바닥 위 잉크 활자와 1px 괘선만. 카드·라운드·그림자·유리·
+   그라디언트 금지(원형 허용: 잉크 점·백색원·주황 점·마커 도트). 등장 애니메이션 없음.
+   움직이는 것은 행 hover 의 잉크 점 하나뿐(CSS :hover).
+   색은 전부 .reels-root 스코프 변수(--paper/--ink/--sub/--faint/--line/--accent/--macro/--micro).
+   예외 하나 — 온도: 크로스뷰 행 메타와 우측 TEMPERATURE 레일의 "낱말 + 숫자"만 밴드 색으로
+   칠한다(--t-ink, data-band 로 밴드 선택 · 피그마 코멘트 #6). 수은 #d90429 은 온도에만 쓴다.
+   ========================================================================== */
+
+@media (min-width: 1100px) {
+  /* ── 판형 — reels.css .reels-root 의 데스크탑 토큰(--dk-maxw/--dk-nav/--dk-pad)을 쓴다.
+     좌 --dk-nav(300px)은 사이드 내비 예약 폭. 2단 그리드 ── */
+  .reels-root .board.bd {
+    max-width: var(--dk-maxw); margin: 0 auto;
+    padding: 44px var(--dk-pad) 120px var(--dk-nav);
+    display: block; gap: 0;
+    background: var(--paper); color: var(--ink);
+    font-family: var(--rl-font);
+    word-break: keep-all;
+  }
+  .reels-root .bd-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+    column-gap: 56px;
+    align-items: start;
+  }
+  .reels-root .bd-main { min-width: 0; display: grid; gap: 48px; }
+  /* 본문 활자 블록은 --dk-read(760px) 상한 — 판형이 넓어져도 한 줄이 길어지지 않는다 */
+  .reels-root .bd-main .bd-head,
+  .reels-root .bd-main .bd-tile-body,
+  .reels-root .bd-main .bd-empty { max-width: var(--dk-read); }
+  /* 우 1/3 — sticky. 세로 괘선 1px 로 좌우 단을 가른다(신문 2단) */
+  .reels-root .bd-side {
+    position: sticky; top: 40px;
+    display: grid; gap: 40px; align-content: start;
+    padding-left: 28px;
+    border-left: 1px solid var(--line);
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .reels-root .bd-side::-webkit-scrollbar { display: none; }
+
+  /* ── 마스트 — 표지 제호와 같은 활자(40px 700) + 날짜 + 오늘 첫 판 ───────────── */
+  .reels-root .bd-mast { display: grid; gap: 12px; }
+  .reels-root .bd-mast-title {
+    font-size: 40px; line-height: 1; font-weight: 700;
+    letter-spacing: -0.02em; color: var(--accent);
+    margin: 0;
+  }
+  .reels-root .bd-mast-date {
+    display: flex; align-items: baseline; gap: 14px;
+    color: var(--sub); font-size: 15px; font-weight: 500;
+    font-variant-numeric: tabular-nums; line-height: 1.5;
+    min-height: 22px; /* 날짜가 클라에서 찍히기 전에도 높이 고정(레이아웃 점프 없음) */
+  }
+  .reels-root .bd-mast-edition { color: var(--ink); font-weight: 700; }
+  .reels-root .bd-footer { margin-top: 56px; }
+
+  /* ── 섹션 머리 — 아이브로우 12px .14em + 괘선 ─────────────────────────── */
+  .reels-root .bd-section { display: grid; gap: 0; align-content: start; }
+  .reels-root .bd-eyebrow {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .reels-root .bd-eyebrow .b-eyebrow {
+    font-size: 12px; font-weight: 500; color: var(--sub);
+    letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.4;
+    margin: 0; min-width: 0;
+  }
+  .reels-root .bd-more {
+    flex: 0 0 auto;
+    font-size: 15px; font-weight: 500; color: var(--ink);
+    text-decoration: underline; text-underline-offset: 3px;
+    line-height: 1.4;
+  }
+  .reels-root .bd-more:hover { color: var(--line); }
+
+  /* 빈 데이터 — 활자 한 줄. 로딩/없음은 점선 괘선 */
+  .reels-root .bd-empty {
+    color: var(--sub); font-size: 15px; font-weight: 500;
+    padding: 18px 0; margin: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .reels-root .bd-empty.dotted { border-bottom-style: dashed; }
+
+  /* ── 크로스뷰 목록 — 괘선 행: 번호 | 헤드라인 | 썸네일 120 ─────────────────── */
+  /* 카드 스토리 격자(2026-10-19) — 3열, 각 칸이 4페이지 가로 스냅 스토리(components/reels/card-story) */
+  .reels-root .bd-stories { list-style: none; margin: 0 0 8px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 32px; }
+  .reels-root .bd-stories > li { min-width: 0; border-top: 1px solid var(--line); padding-top: 12px; }
+  .reels-root .bd-stories .cstory { --cs-fs-head: 21px; --cs-fs-title: 19px; --cs-fs-body: 15px; --cs-fs-meta: 13px; }
+  .reels-root .bd-cv { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+  .reels-root .bd-row {
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    --row-ink: var(--faint); /* 행의 온도색(인라인으로 덮임). 잠잠 = 옅은 회색 */
+  }
+  .reels-root .bd-row-link {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) 120px;
+    column-gap: 20px;
+    align-items: start;
+    min-height: 120px;
+    padding: 22px 0;
+    text-decoration: none; color: var(--ink);
+  }
+  /* 번호 활자 01·02… 20px 700 tabular */
+  .reels-root .bd-num {
+    font-size: 20px; font-weight: 700; line-height: 1.3;
+    letter-spacing: 0; font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    padding-top: 6px; /* 헤드라인 28px 첫 줄 x-높이에 맞춤 */
+  }
+  .reels-root .bd-row-main { display: grid; gap: 10px; min-width: 0; }
+  /* 헤드라인 28px — ⋯/▬ 두 줄. 광역·기초 같은 굵기 700(검토의견 홈 5 — 마커로만 가른다) */
+  .reels-root .bd-head {
+    display: grid; gap: 2px; margin: 0;
+    font-size: 28px; line-height: 1.3; font-weight: 700;
+    letter-spacing: -0.01em; color: var(--ink); text-wrap: balance;
+  }
+  .reels-root .bd-line {
+    display: grid; grid-template-columns: 24px 1fr; column-gap: 8px; align-items: start;
+  }
+  .reels-root .bd-line.plain { grid-template-columns: 1fr; }
+  .reels-root .bd-line.macro .bd-text,
+  .reels-root .bd-line.micro .bd-text { font-weight: 700; }
+  /* 매체 라벨은 스크린리더 전용(색 의존 0) */
+  .reels-root .bd-line .sr {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .reels-root .bd-row-meta {
+    display: flex; flex-wrap: wrap; gap: 4px 12px;
+    color: var(--sub); font-size: 15px; font-weight: 500; line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+  }
+  /* [피그마 #6] 온도 낱말+숫자만 밴드 색(--t-ink) — 사안명·나머지 메타는 잉크/보조 그대로.
+     수은(#d90429)은 온도에만 쓰는 규칙을 지키고, 종이 위 AA(4.5:1)를 넘는 색만 활자에 쓴다.
+     매우 뜨거움/뜨거움 = 수은 #d90429(4.8:1) / 보통 = 잉크 --ink / 미온 = --sub / 잠잠 = --faint-text.
+     (#ff6b5e·#ffa397 같은 수은의 밝은 끝은 검은 세계 전용 — 종이 위 2.6:1 이라 활자에 쓰지 않는다) */
+  .reels-root .bd-row-temp,
+  .reels-root .bd-temp-val { --t-ink: var(--ink); }
+  .reels-root .bd-row-temp[data-band="calm"],
+  .reels-root .bd-temp-val[data-band="calm"] { --t-ink: var(--faint-text); }
+  .reels-root .bd-row-temp[data-band="mild"],
+  .reels-root .bd-temp-val[data-band="mild"] { --t-ink: var(--sub); }
+  .reels-root .bd-row-temp[data-band="warm"],
+  .reels-root .bd-temp-val[data-band="warm"] { --t-ink: var(--ink); }
+  .reels-root .bd-row-temp[data-band="hot"],
+  .reels-root .bd-row-temp[data-band="very-hot"],
+  .reels-root .bd-temp-val[data-band="hot"],
+  .reels-root .bd-temp-val[data-band="very-hot"] { --t-ink: #d90429; }
+  .reels-root .bd-row-temp { color: var(--t-ink); font-weight: 700; }
+  /* 가장 뜨거운 밴드만 한 단 더 굵게 — 색을 못 보는 독자도 낱말과 굵기로 읽는다 */
+  .reels-root .bd-row-temp[data-band="very-hot"] { font-weight: 800; }
+  .reels-root .bd-row-deg { font-weight: 500; color: var(--t-ink); }
+  /* 사안명은 색 밖 — 메타 보조색 */
+  .reels-root .bd-row-issue { color: var(--sub); font-weight: 500; }
+  .reels-root .bd-row-link:hover .bd-text { text-decoration: underline; text-underline-offset: 4px; }
+  .reels-root .bd-row-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  /* 썸네일 셀 120×120 — 점묘 사진(DotImage). 사진 위 텍스트 없음, 스크림 없음 */
+  .reels-root .bd-thumb-cell { display: block; width: 120px; height: 120px; }
+  .reels-root .dot-img.bd-thumb { width: 120px; height: 120px; }
+
+  /* (제거 2026-10-26) 호버 때 번호 왼쪽으로 미끄러지던 잉크 점 24px 시그니처 — 행 전체가 반전되는 새 호버(globals.css)와 역할이 겹쳐 뺐다 */
+
+  /* ── 타일 4열 — 종이 단색, 라운드 0, 텍스트만. 괘선 상단 1px 로 칸을 가른다 ── */
+  .reels-root .bd-tiles {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: 24px; row-gap: 0;
+  }
+  .reels-root .bd-tile {
+    display: grid; gap: 8px; align-content: start;
+    /* 1행 머리줄 — 한 줄이면 20px 로 열마다 제목이 같은 높이에서 시작하고, 매체 라벨이 두 줄로 접히면
+       (시범단 #178, 큰 글자·좁은 열) 그만큼 늘어난다. 고정 20px 이던 때는 두 줄째가 제목과 겹쳤다 */
+    grid-template-rows: minmax(20px, auto) auto auto;
+    padding: 16px 0 20px; min-width: 0;
+    background: var(--paper); border: 0; border-radius: 0; box-shadow: none;
+    border-bottom: 1px solid var(--line);
+  }
+  /* 머리줄(태그)이 없는 타일 — 첫 행 20px 고정을 풀어 제목이 그 자리에서 시작한다.
+     (공고 타일은 Figma #8 로 게시자 태그를 지웠다. 같은 섹션 타일은 모두 태그가 없어 정렬은 유지된다) */
+  .reels-root .bd-tile--notag { grid-template-rows: auto auto auto; }
+  /* 표지 타일의 kind 클래스 "cover" 가 홈 표지(.cover, app/cover.css)와 이름이 겹쳐 padding 이 8px 로 덮이던 것 — 타일 값을 다시 못 박는다 */
+  .reels-root .bd-tile.cover { padding: 16px 0 20px; }
+  .reels-root .bd-tile-tag {
+    display: flex; align-items: center; gap: 6px; height: 20px; min-width: 0;
+    font-size: 13px; font-weight: 500; color: var(--sub);
+    letter-spacing: 0.04em; line-height: 1;
+    /* 시범단 #178: 말줄임으로 "광역 · MBC충북" 이 잘리던 것 → 줄바꿈 허용(높이 고정 20px 은 해제) */
+    white-space: normal; overflow-wrap: anywhere; height: auto; min-height: 20px;
+  }
+  .reels-root .bd-tile-tag .mk { margin-top: 0; flex-shrink: 0; }
+  .reels-root .bd-tile-tag .media-ic { flex-shrink: 0; }
+  /* 광역·기초 머리줄 굵기는 같게(기초만 굵던 규칙 제거 — 비중 균형) */
+  .reels-root .bd-tile-title {
+    margin: 0; font-size: 20px; font-weight: 700; line-height: 1.35; color: var(--ink);
+    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .reels-root .bd-tile-titlelink { color: inherit; text-decoration: none; }
+  /* 포커스도 밑줄로(codex 리뷰, #177) — 부모 .bd-tile-title 의 overflow:hidden 이 바깥 외곽선을 자를 수 있다 */
+  .reels-root .bd-tile-titlelink:hover,
+  .reels-root .bd-tile-titlelink:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+  .reels-root .bd-tile-body {
+    margin: 0; color: var(--ink); font-size: 17px; line-height: 1.65;
+    display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .reels-root .bd-tile-meta {
+    margin: 0; color: var(--sub); font-size: 15px; font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .reels-root .bd-tile-link {
+    justify-self: start;
+    font-size: 15px; font-weight: 500; color: var(--ink);
+    text-decoration: underline; text-underline-offset: 3px;
+    padding: 10px 0; /* 탭 타깃 44px */
+  }
+  .reels-root .bd-tile-link:hover { color: var(--line); }
+
+  /* ── 우측: 온도 TOP5 — 잉크 점 5개. 크기 14→24px, 회색→수은 농도 = 온도 ───────── */
+  .reels-root .bd-temp { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+  .reels-root .bd-temp-row { border-bottom: 1px solid var(--line); }
+  .reels-root .bd-temp-link {
+    display: grid; grid-template-columns: 28px minmax(0, 1fr) auto;
+    align-items: center; column-gap: 12px;
+    min-height: 56px; padding: 8px 0;
+    text-decoration: none; color: var(--ink);
+  }
+  .reels-root .bd-temp-link:hover .bd-temp-label { text-decoration: underline; text-underline-offset: 3px; }
+  .reels-root .bd-temp-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .reels-root .bd-temp-dot {
+    --t: 0;
+    justify-self: center;
+    width: calc(14px + 10px * var(--t)); height: calc(14px + 10px * var(--t));
+    border-radius: 50%;
+    /* 적색 농도 = 온도. 수은은 온도에만 쓴다. color-mix 미지원 브라우저는 회색 점 */
+    background: var(--faint);
+    background: color-mix(in srgb, #d90429 calc(var(--t) * 100%), var(--faint));
+  }
+  .reels-root .bd-temp-label {
+    font-size: 17px; font-weight: 700; line-height: 1.35; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .reels-root .bd-temp-row:first-child .bd-temp-label { font-size: 20px; }
+  /* 낱말(구간명 17px 700) 앞 · 숫자 15px 500 뒤 — 검토의견 홈 4 */
+  .reels-root .bd-temp-val {
+    display: inline-flex; align-items: baseline; gap: 6px;
+    white-space: nowrap; line-height: 1.2;
+  }
+  /* [피그마 #6] 우측 레일 목록도 낱말·숫자가 밴드 색 — 색은 위 --t-ink 규칙에서 온다 */
+  .reels-root .bd-temp-band { font-size: 17px; font-weight: 700; color: var(--t-ink, var(--ink)); letter-spacing: -0.01em; }
+  .reels-root .bd-temp-val[data-band="very-hot"] .bd-temp-band { font-weight: 800; }
+  .reels-root .bd-temp-num {
+    font-size: 15px; font-weight: 500; color: var(--t-ink, var(--sub));
+    font-variant-numeric: tabular-nums; letter-spacing: 0;
+  }
+  .reels-root .bd-side-meta {
+    margin: 10px 0 0; color: var(--sub); font-size: 15px; font-weight: 500;
+    line-height: 1.5; font-variant-numeric: tabular-nums;
+  }
+
+  /* ── 우측: 오늘의 충북 — 회차 예고(제목 22px · 메타 · 첫 문장 2줄 괘선) + "▶ 듣기" 버튼.
+     자체 플레이어 없음 — 재생은 좌 레일 백색원(#side-play). ──────────────────── */
+  .reels-root .bd-pod-title {
+    margin: 14px 0 0; font-size: 22px; font-weight: 700; line-height: 1.35;
+    letter-spacing: -0.01em; color: var(--ink); text-wrap: balance;
+  }
+  .reels-root .bd-podcast .bd-side-meta { margin-top: 6px; }
+  .reels-root .bd-pod-lines { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 0; }
+  .reels-root .bd-pod-lines li {
+    color: var(--ink); font-size: 17px; line-height: 1.6; padding: 8px 0;
+    border-top: 1px solid var(--line);
+  }
+  /* 2줄 클램프는 안쪽 span 에(li 에 걸면 잘린 셋째 줄이 padding 영역에 비친다) */
+  .reels-root .bd-pod-lines li > span {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .reels-root .bd-pod-lines li:last-child { border-bottom: 1px solid var(--line); }
+  .reels-root .bd-podcast .pod-listen { margin-top: 14px; }
+  .reels-root .pod-listen:hover { background: var(--accent-soft); }
+  .reels-root .pod-listen.is-playing:hover { background: var(--line); }
+
+  /* ── 우측: 마감 D-day — 주황 점(D-day 가 줄수록 8→20px) + D-n 숫자 + 제목 ────── */
+  .reels-root .bd-dl { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+  .reels-root .bd-dl-row {
+    display: grid; grid-template-columns: 24px auto minmax(0, 1fr);
+    align-items: start; column-gap: 12px;
+    padding: 14px 0; min-height: 64px;
+    border-bottom: 1px solid var(--line);
+  }
+  .reels-root .bd-dl-dot {
+    --u: 0;
+    justify-self: center; margin-top: 6px;
+    width: calc(8px + 12px * var(--u)); height: calc(8px + 12px * var(--u));
+    border-radius: 50%; background: #f9a03f;
+  }
+  .reels-root .bd-dl-day {
+    font-size: 26px; font-weight: 800; line-height: 1; letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
+    padding-top: 2px;
+  }
+  .reels-root .bd-dl-main { display: grid; gap: 4px; min-width: 0; }
+  .reels-root .bd-dl-title {
+    font-size: 17px; font-weight: 700; line-height: 1.4; color: var(--ink);
+    text-decoration: none;
+  }
+  .reels-root a.bd-dl-title:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .reels-root .bd-dl-meta { color: var(--sub); font-size: 15px; font-weight: 500; line-height: 1.5; }
+
+  /* ── 우측: 해결 — 크림면 #f2e6d8 한 곳(유채색 면 5% 이내). 잉크 글자, 라운드 0 ── */
+  .reels-root .bd-resolve {
+    background: #f2e6d8; color: var(--ink);
+    padding: 16px 18px 20px; border-radius: 0; box-shadow: none;
+  }
+  .reels-root .bd-resolve .bd-eyebrow { border-bottom-color: var(--line); }
+  .reels-root .bd-resolve .b-eyebrow { color: #5b6170; }
+  .reels-root .bd-rs { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+  .reels-root .bd-rs-item { display: grid; gap: 6px; padding: 14px 0 16px; border-bottom: 1px solid var(--line); }
+  .reels-root .bd-rs-item:last-child { border-bottom: 0; padding-bottom: 0; }
+  .reels-root .bd-rs-title { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.35; color: #111111; }
+  .reels-root .bd-rs-meta { margin: 0; color: #5b6170; font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .reels-root .bd-rs-body {
+    margin: 0; color: #111111; font-size: 17px; line-height: 1.65;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+}
+
+/* ── 넓은 판형(≥1440) — 단 간격 72px, 우측 레일 minmax(320px,1fr), 활자 한 단계 위 ──
+   본문 17→18px, 헤드라인 28→32px. 과장 금지(마스트 40px 유지) */
+@media (min-width: 1440px) {
+  .reels-root .bd-cols {
+    grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+    column-gap: 72px;
+  }
+  .reels-root .bd-head { font-size: 32px; }
+  .reels-root .bd-tile-body,
+  .reels-root .bd-rs-body { font-size: 18px; }
+}
+
+/* ── 큰글씨 모드 — 앱 스케일(기획안 타이포 표) ─────────────────────────────── */
+@media (min-width: 1100px) {
+  html[data-font-size="large"] .reels-root .bd-mast-title { font-size: 30px; }
+  html[data-font-size="large"] .reels-root .bd-head { font-size: 30px; }
+  html[data-font-size="large"] .reels-root .bd-tile-body,
+  html[data-font-size="large"] .reels-root .bd-rs-body { font-size: 21px; }
+  html[data-font-size="large"] .reels-root .bd-row-meta,
+  html[data-font-size="large"] .reels-root .bd-tile-meta,
+  html[data-font-size="large"] .reels-root .bd-side-meta,
+  html[data-font-size="large"] .reels-root .bd-dl-meta,
+  html[data-font-size="large"] .reels-root .bd-rs-meta { font-size: 18px; }
+  /* 큰글씨 — 광역/기초 대조에 밑줄 추가(굵기는 같으므로 마커+밑줄) */
+  html[data-font-size="large"] .reels-root .bd-line.micro .bd-text { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+}
+
+/* ── 고대비(data-contrast=high) — 검은 세계 위 백색. 크림면은 괘선 상자로, 수은은 #ff6b5e ── */
+@media (min-width: 1100px) {
+  html[data-contrast="high"] .reels-root .bd-resolve { background: none; border: 1px solid var(--line); }
+  html[data-contrast="high"] .reels-root .bd-rs-title,
+  html[data-contrast="high"] .reels-root .bd-rs-body { color: var(--ink); }
+  html[data-contrast="high"] .reels-root .bd-rs-meta,
+  html[data-contrast="high"] .reels-root .bd-resolve .b-eyebrow { color: var(--sub); }
+  html[data-contrast="high"] .reels-root .bd-temp-dot {
+    background: color-mix(in srgb, #ff6b5e calc(var(--t) * 100%), var(--faint));
+  }
+  /* 고대비 — 종이 변수가 검은 세계로 뒤집히므로 온도 활자도 수은의 밝은 끝(#ff6b5e, 7:1)으로.
+     보통 이하는 백색(--ink) 한 색 — 고대비에서는 농도 대신 낱말·굵기로 가른다(#6) */
+  html[data-contrast="high"] .reels-root .bd-row-temp[data-band="hot"],
+  html[data-contrast="high"] .reels-root .bd-row-temp[data-band="very-hot"],
+  html[data-contrast="high"] .reels-root .bd-temp-val[data-band="hot"],
+  html[data-contrast="high"] .reels-root .bd-temp-val[data-band="very-hot"] { --t-ink: #ff6b5e; }
+  html[data-contrast="high"] .reels-root .bd-row-temp[data-band="calm"],
+  html[data-contrast="high"] .reels-root .bd-row-temp[data-band="mild"],
+  html[data-contrast="high"] .reels-root .bd-temp-val[data-band="calm"],
+  html[data-contrast="high"] .reels-root .bd-temp-val[data-band="mild"] { --t-ink: var(--ink); }
+  html[data-contrast="high"] .reels-root .bd-row:hover::before,
+  html[data-contrast="high"] .reels-root .bd-row:focus-within::before { background: var(--ink); }
+}
+
+/* ── reduced-motion — 잉크 점은 순간 이동 ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+}
+
+/* ≥1440 에서도 2열 유지 — 3열(카드 212px)은 스토리 표지 활자가 네 줄로 꺾이고 사진 면이 좁아 카드뉴스로 읽히지 않았다(라이브 확인 2026-10-19) */
+/* 큰 글자 모드 — 위 .bd-stories .cstory 토큰 재정의보다 특이도를 높여 한 단계 키운다 */
+html[data-font-size="large"] .reels-root .bd-stories .cstory { --cs-fs-head: 24px; --cs-fs-title: 22px; --cs-fs-body: 18px; --cs-fs-meta: 15px; }

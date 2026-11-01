@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ZONE-2 self-host: 문서 사이트(VitePress 정적) 상시 서빙 :3003.
+     소스: <repo>/docs-site (vitepress build -> .vitepress/dist).
+     서빙 경로 __HOME__/zone2-docs/dist (TCC 비보호 — launchd 의 ~/Documents 접근 차단 회피).
+     Cloudflare Named Tunnel 이 docs.mbcok.com -> localhost:3003 로 라우팅.
+     재빌드: cd docs-site && npm install && npm run build && rsync -a --delete .vitepress/dist/ __HOME__/zone2-docs/dist/ -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>kr.zone2.docs</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>-m</string><string>http.server</string>
+    <string>3003</string>
+    <string>--directory</string>
+    <string>__HOME__/zone2-docs/dist</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/tmp/zone2-docs.log</string>
+  <key>StandardErrorPath</key><string>/tmp/zone2-docs.log</string>
+</dict>
+</plist>

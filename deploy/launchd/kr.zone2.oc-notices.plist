@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ZONE-2 self-host: 옥천군청 고시·공고 수집 — 매일 19:00 KST.
+     scripts/scrape/scrape-oc-notices.ts (lookback 7일·5페이지, 멱등 upsert).
+     articles(source=oc_gov, kind=notice, category=공고) 적재. 로그 /tmp/zone2-oc-notices.log
+     Mac TZ=Asia/Seoul 이므로 Hour=19 = 19:00 KST. -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>kr.zone2.oc-notices</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/pnpm</string>
+    <string>tsx</string>
+    <string>scripts/scrape/scrape-oc-notices.ts</string>
+    <string>7</string>
+    <string>5</string>
+  </array>
+  <key>WorkingDirectory</key><string>__ZONE2_DIR__</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key><string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>19</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key><string>/tmp/zone2-oc-notices.log</string>
+  <key>StandardErrorPath</key><string>/tmp/zone2-oc-notices.log</string>
+</dict>
+</plist>

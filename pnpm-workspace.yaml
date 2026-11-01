@@ -1,0 +1,15 @@
+# pnpm 설정 — pnpm 10 은 package.json 의 "pnpm" 필드 대신 이 파일을 읽는다(https://pnpm.io/settings).
+# overrides: 전이 의존성 보안 패치 핀. 메이저는 넘지 않게 범위를 적는다(예: nanoid@3 — provider-utils 가 쓰는 3.x 만 올린다).
+overrides:
+  undici: ">=6.23.0"
+  ws: ">=8.20.1"
+  form-data: ">=4.0.6"
+  esbuild: ">=0.28.1"
+  postcss: "^8.5.23"
+  js-yaml: ">=4.2.0"
+  jsondiffpatch: ">=0.7.2"
+  sharp: "^0.35.5"
+  "brace-expansion@5": ">=5.0.7"
+  body-parser: ">=2.3.0"
+  "nanoid@3": "^3.3.18"
+  source-map-js: "^1.2.2"

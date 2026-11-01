@@ -1,0 +1,500 @@
+/* ==========================================================================
+   podcast.css — 팟캐(오늘의 충북) 목록·재생 화면. 「일점(一點) 지면」 (5) 팟캐.
+
+   목록 = 종이(#f4f5f7). 상단 헤더 띠(검정 #000, 백색 활자 + 'AI가 만든' 주황 스탬프)
+   → 최신 회차 큰 행("최신 회차 · 5일 전" 15px + 내용 요약 헤드라인 28px 700, 잉크 원 ▶ 56px)
+   → 지난 회차 괘선 목록(헤드라인 17px 700 두 줄 + "5일 전 · 4분 51초" 13px 보조색 + 우측 ▶).
+   회의 결정 [7]: 목록은 날짜가 아니라 "대표 내용"으로 읽힌다 — 날짜·길이는 13px 보조색.
+   Figma 코멘트 #2·#4(2026-09-11): 제목 자리 = 대본에서 지은 내용 요약 헤드라인, 날짜는
+   상대 표기("5일 전"). 대본 발췌(.pc-lede)·키워드(.pc-topics)·발 링크(.pc-more) 줄은 없앴다.
+   상세 = 검은 세계(#0b0d12). 좌상단 인트로 문장 자리(left 20/76px, y 138)에 현재 대본
+   단락 22px #f4f5f7, 지난 단락 #919191. 진행선 = 인트로 도로 점선(dash 52/120)이
+   재생될수록 왼쪽부터 실선. 백색원(24px 발광 디스크)이 duration_sec 동안 좌→우 호를
+   날고, 끝나면 우측 벽에서 백색이 확장(clip-path circle 450ms)된 뒤 종이로 돌아온다.
+
+   회의 결정 [2]: 재생 원(.pc-circle)은 바닥색과 무관하게 늘 주황 #f9a03f 면 + 검정
+   글리프 #0b0d12(9.4:1) — 종이에선 잉크 원, 검은 세계에선 백색원이던 것을 한 색으로 묶었다.
+   '주황 = 재생'은 앱 전체 규약(하단 #fn-play, 레일 #side-play, 시트 .pl-circle, .pod-listen).
+
+   색은 기획안 표의 hex 만. 카드·라운드·그림자·유리·그라디언트 없음 —
+   원형 예외: 재생 원 ▶·진행 끝 점·발광 디스크(인트로 glowDisc 의 후광만 예외).
+   괘선 1px #1c2130 (점선 = 아직 없음/로딩, 실선 = 도착). 등장 애니메이션 없음(찍힘).
+   변수는 .reels-root(app/reels.css) 것을 폴백과 함께 쓴다.
+   데스크탑(≥1100px) 다단 판형은 파일 끝 블록 — 모바일 규칙은 손대지 않는다.
+   ========================================================================== */
+
+.pc-list,
+.pc-play,
+.pc-loading {
+  --pc-ink: var(--ink, #111111);
+  --pc-title: #1c2130;
+  --pc-sub: var(--sub, #5b6170);
+  --pc-paper: var(--paper, #f4f5f7);
+  --pc-white: #ffffff;
+  --pc-black: var(--black, #0b0d12);
+  --pc-line: var(--line, #1c2130);
+  --pc-studio: #000000;   /* 팟캐 목록 헤더 띠 — 검정(검토 2026-09-21, 보라 #241640 에서 변경) */
+  --pc-stamp: #f9a03f;    /* 'AI가 만든' 주황 스탬프(잉크 글자, 8:1 — 재생 주황과 같은 색) */
+  --pc-past: #919191;     /* 검은 세계의 지난 단락 */
+  --pc-play: #f9a03f;       /* 재생 주황 — reels.css --play 와 같은 값(스코프가 달라 다시 적는다) */
+  --pc-play-ink: #0b0d12;   /* 주황 면 위 ▶/❚❚ — 9.4:1 */
+  --pc-play-press: #e08a26; /* 눌림 */
+  --pc-soft: #e9eaee;     /* 옅은 보조 면(눌림 상태) */
+  /* 하단 검은 네비가 차지하는 높이 — .reels-page 의 padding-bottom 과 같다(reels.css) */
+  --pc-nav: calc(100px + env(safe-area-inset-bottom, 0px));
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  word-break: keep-all;
+  color: var(--pc-ink);
+}
+@media (min-width: 1100px) {
+  .pc-list, .pc-play, .pc-loading { --pc-nav: 24px; }
+}
+
+/* 공통 활자 */
+.pc-meta {
+  font-size: 15px; font-weight: 500; line-height: 1.5;
+  color: var(--pc-sub); font-variant-numeric: tabular-nums;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0;
+}
+.pc-meta .pc-sep { margin: 0 8px; }
+.pc-new { font-weight: 700; color: var(--pc-ink); letter-spacing: 0.04em; }
+
+/* 'AI가 만든' 주황 스탬프 — 18px 높이 주황 필드 위 잉크 활자(유채색 면 5% 규칙 안) */
+.pc-stamp {
+  display: inline-block; height: 18px; line-height: 18px; padding: 0 6px;
+  background: var(--pc-stamp); color: var(--pc-ink);
+  font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
+  border-radius: 0; vertical-align: middle; white-space: nowrap;
+}
+
+/* 활자 버튼 — 44px, 잉크 테두리 1px. 라운드 0, 전환 없음 */
+.pc-tbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 0 14px;
+  border: 1px solid var(--pc-ink); border-radius: 0; background: transparent;
+  color: var(--pc-ink); font: inherit; font-size: 15px; font-weight: 500;
+  font-variant-numeric: tabular-nums; white-space: nowrap; cursor: pointer;
+  transition: none; box-shadow: none;
+}
+.pc-tbtn:active { background: var(--pc-soft); }
+.pc-tbtn:disabled { opacity: 0.45; pointer-events: none; }
+.pc-tbtn.rate { min-width: 64px; font-weight: 700; }
+/* 밑줄 활자 링크(면 없음) */
+.pc-tlink {
+  display: inline-flex; align-items: center; min-height: 44px;
+  font-size: 15px; font-weight: 500; color: var(--pc-ink);
+  text-decoration: underline; text-underline-offset: 3px;
+  background: none; border: 0; padding: 0; font-family: inherit; cursor: pointer;
+}
+.pc-tlink:hover { color: var(--pc-title); }
+
+/* 원 버튼(▶/❚❚) — 종이든 검은 세계든 늘 주황 면 + 검정 글리프(결정 2) */
+.pc-circle {
+  display: inline-grid; place-items: center; flex: none;
+  width: 72px; height: 72px; border-radius: 50%;
+  border: 0; padding: 0; cursor: pointer;
+  background: var(--pc-play); color: var(--pc-play-ink);
+  transition: none;
+  /* 입체감(사용자 요청) — 아래 그림자 + 위 하이라이트 */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.18), inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+}
+.pc-circle:active { background: var(--pc-play-press); }
+/* 종이 목록에서는 주황 면과 종이의 경계가 1.9:1 뿐 — 1px 괘선으로 원의 윤곽을 세운다
+   (검은 세계 .pc-play 는 9.4:1 이라 테두리 없이도 원이 선다). box-sizing: border-box 라 크기 불변 */
+.pc-list .pc-circle,
+.pc-loading .pc-circle { border: 1px solid var(--pc-line); }
+.pc-circle svg { width: 24px; height: 24px; fill: currentColor; }
+.pc-circle[aria-pressed="false"] svg { margin-left: 3px; } /* ▶ 시각 중심 보정 */
+
+.pc-list :focus-visible,
+.pc-loading :focus-visible { outline: 2px solid var(--pc-ink); outline-offset: 2px; border-radius: 0; }
+.pc-play :focus-visible { outline: 2px solid var(--pc-white); outline-offset: 2px; border-radius: 0; }
+
+/* ── 이어 듣기·오류 안내 — 괘선 위 활자(면 없음) ──────────────────────── */
+.pc-note {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
+  border-top: 1px solid var(--pc-line); padding: 8px 0 4px;
+  font-size: 15px; line-height: 1.5; color: var(--pc-ink);
+}
+.pc-note .pc-note-k { font-weight: 700; }
+.pc-note .pc-tlink { margin-left: auto; }
+.pc-note .pc-tlink + .pc-tlink { margin-left: 0; }
+/* 오디오 미준비 — 점선 괘선(아직 없음) */
+.pc-pending {
+  border-top: 1px dashed var(--pc-line); border-bottom: 1px dashed var(--pc-line);
+  padding: 14px 0; font-size: 15px; font-weight: 500; color: var(--pc-sub);
+}
+
+/* ── 진행선(PlayerProgress) — 44px 히트 영역 안 SVG 선 ─────────────────
+   바닥선: 점선(아직 없음) → 버퍼 구간 가는 실선(도착) → 재생 구간 2px 실선.
+   재생 실선은 pathLength=1 · stroke-dashoffset 으로 왼쪽부터 잇는다(이음 400ms outCubic). */
+.pc-prog {
+  position: relative; display: block; width: 100%; height: 44px;
+  cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.pc-prog svg { display: block; width: 100%; height: 44px; overflow: visible; }
+.pc-prog .pp-base {
+  stroke: var(--pc-line); stroke-width: 1; stroke-dasharray: 1 3; opacity: 0.9;
+}
+.pc-prog .pp-buf { stroke: var(--pc-line); stroke-width: 1; opacity: 0.35; }
+.pc-prog .pp-fill {
+  stroke: var(--pc-ink); stroke-width: 2; stroke-dasharray: 1 1;
+  transition: stroke-dashoffset 400ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+.pc-prog.is-drag .pp-fill { transition: none; }
+/* 진행 끝 잉크 점 10px(원형 허용) */
+.pc-prog .pp-dot {
+  position: absolute; top: 50%; width: 10px; height: 10px;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  background: var(--pc-ink); pointer-events: none;
+  transition: left 400ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+.pc-prog.is-drag .pp-dot { transition: none; }
+/* 버퍼링 — 점 대신 빈 링(아직 없음) */
+.pc-prog.is-buffering .pp-dot { background: transparent; border: 1px solid var(--pc-ink); }
+/* 검은 세계 — 인트로 도로 점선(dash 52/120) 위를 백색 실선이 왼쪽부터 잇는다 */
+.pc-prog.black .pp-base {
+  stroke: #f4f5f7; stroke-width: 2; stroke-dasharray: 52 120; opacity: 0.55;
+}
+.pc-prog.black .pp-buf { stroke: #f4f5f7; opacity: 0.22; }
+.pc-prog.black .pp-fill { stroke: #f4f5f7; }
+.pc-prog.black .pp-dot { background: #f4f5f7; }
+.pc-prog.black.is-buffering .pp-dot { background: transparent; border-color: #f4f5f7; }
+.pc-times {
+  display: flex; justify-content: space-between;
+  font-size: 15px; font-weight: 500; color: var(--pc-sub);
+  font-variant-numeric: tabular-nums; margin-top: -8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-prog .pp-fill, .pc-prog .pp-dot { transition: none; }
+}
+
+/* ==========================================================================
+   목록(종이)
+   ========================================================================== */
+.pc-list { display: flex; flex-direction: column; background: var(--pc-paper); }
+
+/* 녹음실 띠 — 컬럼 안에 있지만 ::before 로 뷰포트 폭까지 번진다(풀블리드).
+   데스크톱(≥1100px)은 좌측 레일이 있으므로 컬럼 폭에 머문다. */
+.pc-band {
+  position: relative; isolation: isolate;
+  background: var(--pc-studio); color: var(--pc-white);
+  padding-top: 18px; padding-bottom: 18px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+}
+.pc-band::before {
+  content: ""; position: absolute; top: 0; bottom: 0; z-index: -1;
+  left: calc(50% - 50vw); right: calc(50% - 50vw);
+  background: var(--pc-studio);
+}
+@media (min-width: 1100px) {
+  .pc-band::before { left: 0; right: 0; }
+}
+.pc-band h1 {
+  margin: 0; font-size: 20px; font-weight: 700; line-height: 1.3; color: var(--pc-white);
+  letter-spacing: -0.01em;
+}
+@media (min-width: 640px) { .pc-band h1 { font-size: 22px; } }
+.pc-band .pc-band-n {
+  margin-left: auto; font-size: 15px; font-weight: 500; color: rgba(244, 245, 247, 0.72);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 최신 회차 큰 행 */
+.pc-lead { display: grid; gap: 12px; padding-top: 28px; padding-bottom: 24px; }
+.pc-lead .pc-k {
+  margin: 0; font-size: 15px; font-weight: 500; color: var(--pc-sub); letter-spacing: 0.02em;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+.pc-lead .pc-k .pc-sep { margin: 0 4px; }
+.pc-lead h2 {
+  margin: 0; font-size: 28px; line-height: 1.3; font-weight: 700;
+  letter-spacing: -0.01em; color: var(--pc-title); text-wrap: balance;
+}
+.pc-lead h2 a { color: inherit; text-decoration: none; }
+.pc-lead h2 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+/* 인라인 플레이어(최신 행) — 잉크 원 56 + 진행선, 아래 활자 버튼 행 */
+.pc-player { display: grid; gap: 6px; }
+.pc-transport { display: flex; align-items: center; gap: 14px; }
+.pc-transport .pc-prog-col { flex: 1; min-width: 0; display: grid; gap: 0; }
+.pc-ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* 지난 회차 괘선 목록 */
+.pc-past { display: grid; gap: 0; padding-bottom: 16px; }
+.pc-h {
+  display: flex; align-items: baseline; gap: 10px;
+  margin: 0; padding: 12px 0 10px;
+  font-size: 15px; font-weight: 500; color: var(--pc-sub); letter-spacing: 0.02em;
+}
+.pc-h span { font-variant-numeric: tabular-nums; }
+.pc-rows { list-style: none; margin: 0; padding: 0; }
+.pc-row {
+  position: relative; border-top: 1px solid var(--pc-line);
+  padding: 14px 64px 12px 0; min-height: 64px;
+  display: grid; gap: 4px;
+}
+.pc-rows > .pc-row:last-child { border-bottom: 1px solid var(--pc-line); }
+.pc-row h3 {
+  margin: 0; font-size: 17px; line-height: 1.4; font-weight: 700;
+  letter-spacing: -0.01em; color: var(--pc-title);
+  /* 도면대로 헤드라인은 두 줄까지 — 넘치면 말줄임(행 높이가 들쭉날쭉해지지 않게) */
+  overflow: hidden; text-overflow: ellipsis;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+/* 행에서는 날짜·길이가 보조 정보 — 13px 보조색으로 줄이고 오른쪽(▶ 왼편)에 붙인다 */
+/* 도면(mobile-podcast-notices): 행 메타는 제목 아래 왼쪽 — "5일 전 · 4분 51초" */
+.pc-row > .pc-meta { font-size: 13px; justify-self: start; text-align: left; }
+.pc-row > .pc-meta .pc-sep { margin: 0 6px; }
+.pc-row h3 a { color: inherit; text-decoration: none; }
+.pc-row h3 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+/* ▶ 활자 버튼 — 행 우측, 44px */
+.pc-row-play {
+  position: absolute; right: 0; top: 10px;
+  display: inline-grid; place-items: center;
+  width: 44px; height: 44px; border: 0; padding: 0;
+  background: transparent; color: var(--pc-ink); cursor: pointer;
+  font-size: 22px; line-height: 1; border-radius: 0; transition: none;
+}
+.pc-row-play svg { width: 22px; height: 22px; fill: currentColor; }
+.pc-row-play:active { background: var(--pc-soft); }
+/* 행 플레이어 펼침(재생 시작 후) — 진행선 + 시간 + 활자 버튼 */
+.pc-rowplayer { display: grid; gap: 6px; }
+.pc-rowplayer .pc-ctl { padding-bottom: 4px; }
+
+/* 빈 상태 — 점선 괘선 사이 활자 */
+.pc-empty {
+  border-top: 1px dashed var(--pc-line); border-bottom: 1px dashed var(--pc-line);
+  padding: 22px 0; display: grid; gap: 4px;
+}
+.pc-empty strong { font-size: 20px; font-weight: 700; color: var(--pc-title); }
+.pc-empty p { margin: 0; font-size: 17px; line-height: 1.65; color: var(--pc-sub); }
+
+/* ── 로딩 — 괘선이 점선으로 찍히고 데이터가 오면 실선이 된다(시머 없음) ─── */
+.pc-loading { display: flex; flex-direction: column; background: var(--pc-paper); }
+.pc-loading .pc-lead h2 { color: var(--pc-sub); font-weight: 500; }
+.pc-loading .pc-row { border-top-style: dashed; }
+.pc-loading .pc-rows > .pc-row:last-child { border-bottom-style: dashed; }
+.pc-loading .pc-dash { border-top: 1px dashed var(--pc-line); height: 0; }
+.pc-loading .pc-dash--title { border-top-width: 3px; width: 60%; margin: 8px 0 18px; }
+.pc-loading .pc-h { color: var(--pc-sub); }
+
+/* ==========================================================================
+   상세 = 검은 세계 재생 화면
+   ========================================================================== */
+.pc-play {
+  position: relative;
+  display: flex; flex-direction: column;
+  /* 높이를 고정해야 가운데 대본 영역이 안에서 스크롤된다. 발이 밀리면 페이지가 조금 늘어난다 */
+  height: calc(100dvh - var(--pc-nav));
+  color: #f4f5f7; background: var(--pc-black);
+}
+.pc-script-wrap { min-height: 0; }
+/* 뷰포트 전체를 검게 — 콘텐츠 뒤, 네비(z30)·레일 앞의 다른 것 아래 */
+.pc-play-bg {
+  position: fixed; inset: 0; z-index: -1;
+  background: var(--pc-black); pointer-events: none;
+}
+.pc-play a { color: inherit; }
+
+/* 머리 — 뒤로·공유 행 + 제목·메타. 높이 118px → 대본 시작 y ≈ 20 + 118 = 138 */
+.pc-play-head {
+  padding-top: 20px; min-height: 118px;
+  display: grid; gap: 6px; align-content: start;
+}
+.pc-play-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pc-play .pc-tlink { color: #f4f5f7; }
+.pc-play .pc-tlink:hover { color: #ffffff; }
+.pc-play-head h1 {
+  margin: 0; font-size: 20px; line-height: 1.3; font-weight: 700;
+  letter-spacing: -0.01em; color: #f4f5f7;
+}
+.pc-play .pc-meta { color: var(--pc-past); }
+.pc-play .pc-new { color: #f4f5f7; }
+
+/* 대본 — 인트로 문장 자리. 현재 단락 22px #f4f5f7, 지난 단락 #919191, 다음 단락 #919191 α.62(고령 독자: #0b0d12 위 3.04:1, α.48 은 2.28:1) */
+.pc-script {
+  flex: 1 1 auto; min-height: 160px;
+  overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: none; padding-bottom: 24px;
+}
+.pc-script::-webkit-scrollbar { display: none; }
+.pc-script ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+.pc-script li {
+  font-size: 22px; line-height: 1.45; font-weight: 500; letter-spacing: -0.01em;
+  color: var(--pc-past); max-width: 34em; white-space: pre-wrap;
+}
+.pc-script li[data-state="current"] { color: #f4f5f7; font-weight: 700; }
+.pc-script li[data-state="next"] { color: var(--pc-past); opacity: 0.62; }
+/* 오디오 없음(동기 불가) — 전부 읽히는 활자 */
+.pc-script.is-static li { color: #f4f5f7; opacity: 1; font-weight: 500; }
+.pc-script .pc-script-empty { font-size: 17px; color: var(--pc-past); }
+@media (min-width: 640px) { .pc-script li { font-size: 24px; } }
+
+/* 발 — 안내·진행선·컨트롤 */
+.pc-play-foot { display: grid; gap: 6px; padding-top: 8px; padding-bottom: 20px; }
+.pc-play .pc-note { border-top-color: rgba(244, 245, 247, 0.4); color: #f4f5f7; }
+.pc-play .pc-pending { border-color: rgba(244, 245, 247, 0.4); color: var(--pc-past); }
+.pc-play .pc-times { color: var(--pc-past); }
+/* 활자 44px 흰 테두리 */
+.pc-play .pc-tbtn { border-color: #f4f5f7; color: #f4f5f7; }
+.pc-play .pc-tbtn:active { background: rgba(244, 245, 247, 0.14); }
+/* 백색원 64px */
+.pc-play .pc-circle { width: 64px; height: 64px; background: var(--pc-play); color: var(--pc-play-ink); }
+.pc-play .pc-circle:active { background: var(--pc-play-press); }
+.pc-play .pc-circle svg { width: 34px; height: 34px; }
+.pc-play-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.pc-play-ctl .rate { margin-left: auto; }
+/* 데스크탑 전용 재생 화면 조각(머리·96px 백색원·파형) — 모바일에서는 없다(파일 끝 블록이 켠다) */
+.pc-deck-head, .pc-deck-circle, .pc-deck-wave { display: none; }
+
+/* 발광 디스크 레이어 — 뷰포트 전체, 터치 통과. 디스크는 JS(WAAPI)가 호를 따라 옮긴다 */
+.pc-disc-layer {
+  position: fixed; inset: 0; z-index: 5; pointer-events: none; overflow: hidden;
+}
+.pc-disc {
+  position: absolute; left: 0; top: 0;
+  width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%;
+  background: var(--pc-white);
+  /* 인트로 glowDisc 의 후광(rgba(190,205,255)) — 발광 디스크에만 허용 */
+  box-shadow: 0 0 18px 6px rgba(190, 205, 255, 0.45), 0 0 44px 14px rgba(190, 205, 255, 0.18);
+  will-change: transform;
+  opacity: 0;
+}
+.pc-play[data-disc="on"] .pc-disc { opacity: 1; }
+.pc-play[data-phase="expand"] .pc-disc { opacity: 0; }
+
+/* 끝 — 우측 벽 충돌 지점(--fx,--fy)에서 백색이 화면만큼 확장(450ms) */
+.pc-white {
+  position: fixed; inset: 0; z-index: 60; background: #ffffff; pointer-events: none;
+  --fx: 100vw; --fy: 50vh;
+  clip-path: circle(0px at var(--fx) var(--fy));
+  animation: pc-expand 450ms cubic-bezier(0.2, 0.8, 0.2, 1) 1 forwards;
+}
+@keyframes pc-expand {
+  from { clip-path: circle(0px at var(--fx) var(--fy)); }
+  to   { clip-path: circle(160vmax at var(--fx) var(--fy)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-white { animation: none; clip-path: none; }
+}
+
+/* 고대비 — 마커·스탬프 잉크화, 종이 목록도 검은 세계 위 활자(앱 전역 규칙과 동일) */
+html[data-contrast="high"] .pc-list { --pc-paper: #0b0d12; --pc-ink: #f4f5f7; --pc-title: #f4f5f7; --pc-sub: #c9ccd4; --pc-line: #f4f5f7; --pc-soft: #1c2130; }
+html[data-contrast="high"] .pc-stamp { background: #f4f5f7; color: #0b0d12; }
+html[data-contrast="high"] .pc-band { background: #0b0d12; border-top: 1px solid #f4f5f7; border-bottom: 1px solid #f4f5f7; }
+html[data-contrast="high"] .pc-band::before { background: #0b0d12; }
+/* 고대비에서도 재생 주황은 유지(이미 9.4:1). 목록 원의 테두리는 --pc-line 이 백색으로 뒤집혀 따라온다 */
+html[data-contrast="high"] .pc-circle { background: #f9a03f; color: #0b0d12; }
+
+/* 음파형 배치 */
+.pc-transport .pc-wave { flex: 0 0 auto; margin: 0 12px; color: var(--pc-ink); }
+.pc-play .pc-play-wave { margin-right: 10px; color: var(--pc-white, #fff); }
+
+/* ==========================================================================
+   데스크탑 판형(≥1100px) — 「데스크탑은 화면을 크게 쓴다」 계약. 모바일 규칙 무변경.
+   컨테이너(.reels-page: 가용 908 / 1100 / 1332px)는 app/reels.css 가 잡는다. 컬럼 안쪽
+   여백(테일윈드 px-5 / sm:px-[76px])은 0 으로 — 녹음실 띠만 안쪽 24px 을 남긴다.
+   목록: 최신 회차 큰 행 = 좌 제목·메타 / 우 잉크 원 플레이어(2열) · 지난 회차 괘선
+     목록 = 2단(≥1440 3단) 격자(행 사이 괘선은 각 셀 아래 1px, 격자 위 1px).
+   상세(검은 세계): 좌 대본(≤ --dk-read, 안에서 스크롤) + 우 레일 "재생 화면"(sticky top 24):
+     회차 제목·날짜·길이 → 96px 백색원 → 폭 전체 진행선·시간 → −15초/+15초/배속 44px 행
+     → 파형. 모바일 컨트롤 행의 백색원(.pc-m-circle)은 숨긴다. 화면 높이는 100dvh − 24px.
+   ========================================================================== */
+@media (min-width: 1100px) {
+  /* ── 목록 ── */
+  .pc-list > .pc-band,
+  .pc-loading > .pc-band { padding-left: 24px; padding-right: 24px; }
+  .pc-list > .pc-lead,
+  .pc-list > .pc-past,
+  .pc-list > .pc-empty,
+  .pc-loading > .pc-lead,
+  .pc-loading > .pc-past { padding-left: 0; padding-right: 0; }
+
+  /* 최신 회차 — 좌 활자 4행 / 우 플레이어(세로 가운데) */
+  .pc-list > .pc-lead {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 42%);
+    grid-template-rows: repeat(2, auto);
+    column-gap: 48px; align-items: center;
+  }
+  /* 코멘트 #4 로 발췌·키워드·발 링크가 빠져 좌단은 아이브로우 + 헤드라인 두 행이다 */
+  .pc-list > .pc-lead > .pc-k { grid-column: 1; grid-row: 1; }
+  .pc-list > .pc-lead > h2 { grid-column: 1; grid-row: 2; max-width: var(--dk-read); }
+  .pc-list > .pc-lead > .pc-player { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+
+  /* 지난 회차 — 2단 격자. 괘선: 격자 위 1px + 각 셀 아래 1px */
+  .pc-past > .pc-rows {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px;
+    border-top: 1px solid var(--pc-line);
+  }
+  .pc-past > .pc-rows > .pc-row { border-top: 0; border-bottom: 1px solid var(--pc-line); min-width: 0; }
+  .pc-loading .pc-past > .pc-rows { border-top-style: dashed; }
+  .pc-loading .pc-past > .pc-rows > .pc-row { border-bottom-style: dashed; }
+
+  /* ── 상세 — 좌 대본 / 우 플레이어 레일 ── */
+  .pc-play {
+    display: grid;
+    grid-template-columns: minmax(0, var(--dk-read)) minmax(320px, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 56px;
+  }
+  .pc-play > .pc-play-head { grid-column: 1 / -1; grid-row: 1; padding-left: 0; padding-right: 0; }
+  .pc-play > .pc-play-head h1 { max-width: var(--dk-read); font-size: 24px; }
+  .pc-play > .pc-script-wrap { grid-column: 1; grid-row: 2; min-height: 0; padding-left: 0; padding-right: 0; }
+  .pc-play > .pc-play-foot {
+    grid-column: 2; grid-row: 2; align-self: start;
+    position: sticky; top: 24px;
+    padding: 0 0 20px; max-width: 560px; width: 100%;
+    gap: 10px;
+    /* 레일 위 괘선 1px — 대본과 재생 화면을 가른다 */
+    border-top: 1px solid rgba(244, 245, 247, 0.4);
+    padding-top: 18px;
+  }
+  /* 머리 — 작은 표제 13px, 제목 22px 700, 날짜·길이 15px(검은 세계 회색 #919191) */
+  .pc-play .pc-deck-head { display: grid; gap: 6px; }
+  .pc-play .pc-deck-k {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: var(--pc-past);
+  }
+  .pc-play .pc-deck-title {
+    font-size: 22px; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em;
+    color: #f4f5f7; text-wrap: balance;
+  }
+  .pc-play .pc-deck-meta {
+    font-size: 15px; font-weight: 500; color: var(--pc-past); font-variant-numeric: tabular-nums;
+  }
+  .pc-play .pc-deck-meta .pc-sep { margin: 0 8px; }
+  /* 96px 백색원 — 레일 가운데, 위아래 여백으로 숨을 준다 */
+  .pc-play .pc-deck-circle { display: flex; justify-content: center; padding: 22px 0 14px; }
+  .pc-play .pc-deck-circle .pc-circle { width: 96px; height: 96px; }
+  .pc-play .pc-deck-circle .pc-circle svg { width: 38px; height: 38px; }
+  .pc-play .pc-deck-circle .pc-circle[aria-pressed="false"] svg { margin-left: 5px; }
+  /* 모바일 행의 백색원은 숨기고 −15초/+15초/배속 44px 행만 남긴다(배속은 오른쪽 끝) */
+  .pc-play .pc-play-ctl .pc-m-circle { display: none; }
+  .pc-play .pc-play-ctl { gap: 10px; padding-top: 6px; }
+  .pc-play .pc-play-ctl .pc-tbtn { min-width: 96px; }
+  /* 파형 — 레일 폭에 13막대, 4px 굵기, 40px 높이. 재생 중 흔들림(wave.css 키프레임) */
+  .pc-play .pc-deck-wave {
+    display: flex; justify-content: center; gap: 5px; height: 40px;
+    margin-top: 14px; color: #f4f5f7;
+  }
+  .pc-play .pc-deck-wave i { width: 4px; height: 8px; }
+  .pc-play .pc-deck-wave i:nth-child(2n) { height: 14px; }
+  .pc-play .pc-deck-wave i:nth-child(7) { height: 20px; }
+  .pc-play .pc-deck-wave.is-on i:nth-child(1), .pc-play .pc-deck-wave.is-on i:nth-child(13) { --hi: 14px; }
+  .pc-play .pc-deck-wave.is-on i:nth-child(2), .pc-play .pc-deck-wave.is-on i:nth-child(12) { --hi: 20px; }
+  .pc-play .pc-deck-wave.is-on i:nth-child(3), .pc-play .pc-deck-wave.is-on i:nth-child(11) { --hi: 26px; }
+  .pc-play .pc-deck-wave.is-on i:nth-child(4), .pc-play .pc-deck-wave.is-on i:nth-child(10) { --hi: 30px; }
+  .pc-play .pc-deck-wave.is-on i:nth-child(5), .pc-play .pc-deck-wave.is-on i:nth-child(9) { --hi: 34px; }
+  .pc-play .pc-deck-wave.is-on i:nth-child(6), .pc-play .pc-deck-wave.is-on i:nth-child(8) { --hi: 38px; }
+  .pc-play .pc-deck-wave.is-on i:nth-child(7) { --hi: 40px; }
+  /* 머리(h1 뒤 메타)의 작은 파형은 레일 파형과 겹치니 데스크탑에선 숨긴다 */
+  .pc-play > .pc-play-head .pc-play-wave { display: none; }
+}
+@media (min-width: 1440px) {
+  .pc-past > .pc-rows { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pc-list > .pc-lead h2 { font-size: 32px; }
+}
+
+/* 재생 원 안 아이콘을 키운다(사용자 요청) */
+.pc-circle svg { width: 32px; height: 32px; }

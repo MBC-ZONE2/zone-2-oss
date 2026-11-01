@@ -1,0 +1,734 @@
+/* ==========================================================================
+   forum.css — 공론장 목록·상세·글쓰기 (「일점(一點) 지면」 기획안 (5) 공론장)
+
+   종이 #f4f5f7 위 괘선 1px(#1c2130)과 활자만으로 조판한다. 카드·라운드·그림자·
+   유리·그라디언트 없음. 원형은 셋 — 목록 앞 점(공감 크기 4단), 공감 링→점,
+   모바일 FAB 잉크 원 62px. 글쓰기·댓글 작성은 <OpinionComposer>(app/composer.css).
+   유채색 면은 해결 크림면(#f2e6d8) 한 곳,
+   수은(#d90429→#ff6b5e)은 '이 사안 온도' 눈금에만 쓴다.
+   토큰은 .forum 이 스스로 갖는다(app/reels.css .reels-root 와 같은 값) — 신고
+   다이얼로그처럼 body 포털로 나가는 곳에서도 같은 지면이 되도록. 고대비는 아래에서
+   같은 방식으로 검은 세계로 뒤집는다. .fo-* 셀렉터는 스코프 접두어 없이 쓴다
+   (홈 피드 .fo-row, 크로스뷰 상세의 PostForm 등 .forum 밖에서도 재사용).
+   텍스트·목록·괘선은 0ms 로 찍힌다 — 움직이는 것은 점(공감·내 글·눈금)뿐.
+   데스크탑(≥1100px) 다단 판형은 파일 끝 블록 — 모바일 규칙은 손대지 않는다.
+   Figma #7(2026-09-11): 목록 정렬 줄은 가로 스크롤 스트립(.fo-sort-scroll),
+   탭·정렬 줄의 세로막대("|" 구분자)는 목록에서 뺐다 — 구분은 활자 무게·밑줄로만.
+   ========================================================================== */
+
+/* ── 토큰 스코프(.forum) — 페이지 루트와 다이얼로그가 함께 쓴다 ────────────── */
+.forum {
+  --ink: #111111;             /* 잉크 본문 */
+  --sub: #5b6170;             /* 보조 잉크 */
+  --faint: #8a8f9c;           /* 가장 옅은 보조 — 장식 전용(눈금·비활성 원·구분선). 종이 위 2.97:1 이라 글자에는 쓰지 않는다 */
+  --faint-text: #697082;      /* 옅은 글자(탭 건수·구분자·placeholder) — 종이 #f4f5f7 위 4.54:1 (AA) */
+  --paper: #f4f5f7;           /* 종이 */
+  --line: #1c2130;            /* 괘선 */
+  --rl-font: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  --fo-gutter: 20px;          /* 좌측 기준선 — 폰 20px / 데스크탑 76px */
+  --fo-cream: #f2e6d8;        /* 해결 크림면 */
+  --fo-hg: #d90429;           /* 수은 — 온도 눈금에만 */
+  --fo-hg-soft: #ff6b5e;      /* 수은(검은 세계 위 7:1) */
+  font-family: var(--rl-font);
+  color: var(--ink);
+  word-break: keep-all;
+}
+@media (min-width: 768px) {
+  .forum { --fo-gutter: 76px; }
+}
+html[data-contrast="high"] .forum {
+  --ink: #f4f5f7; --sub: #f4f5f7; --faint: #f4f5f7; --faint-text: #f4f5f7;
+  --paper: #0b0d12; --line: #f4f5f7;
+}
+/* ── 페이지 루트(.forum-page) — 종이 바닥 + 상하 여백 ─────────────────────── */
+.forum-page {
+  background: var(--paper);
+  padding-top: 0; /* 상단 안전 영역은 .reels-page 가 공통으로 준다 */
+  padding-bottom: 48px;
+}
+.forum :focus-visible {
+  outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 0;
+}
+/* body 는 user-select:none — 본문·입력은 선택 가능해야 한다 */
+.fo-body,
+.fo-comment-body,
+.fo-input,
+.fo-textarea { -webkit-user-select: text; user-select: text; }
+
+/* ── 마스트(제호) ──────────────────────────────────────────────────────── */
+/* 제호 한 줄 — 폰에서 탭·글이 더 위로 오게 상단 여백 28→16px, 설명은 제호 옆 15px(2026-10-19 피드백) */
+.fo-mast {
+  padding: 16px var(--fo-gutter, 20px) 0;
+  display: grid; gap: 0;
+}
+.fo-mast h1 {
+  margin: 0; font-size: 25px; font-weight: 700; line-height: 1.2;
+  letter-spacing: -0.01em; color: var(--ink);
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px;
+}
+.fo-mast-sub { font-size: 15px; font-weight: 500; color: var(--sub); letter-spacing: 0; }
+@media (min-width: 768px) { .fo-mast h1 { font-size: 40px; } .fo-mast { padding-top: 28px; } }
+.fo-mast-meta {
+  display: flex; flex-wrap: wrap; gap: 0 14px;
+  font-size: 15px; font-weight: 500; color: var(--sub); line-height: 1.5;
+}
+
+/* ── 해결 크림면 — resolution_stories 있을 때만. 잉크 on 크림 13:1(고대비 포함 고정색) ── */
+.fo-cream {
+  margin-top: 24px;
+  padding: 18px var(--fo-gutter, 20px) 22px;
+  background: var(--fo-cream); color: #111111;
+  display: grid; gap: 12px;
+}
+.fo-cream-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.fo-cream-head h2 { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.3; }
+.fo-cream-head span { font-size: 15px; font-weight: 500; color: #5b6170; }
+.fo-cream-list { list-style: none; margin: 0; padding: 0; }
+.fo-cream-item {
+  border-top: 1px solid #1c2130;
+  padding: 12px 0 4px; display: grid; gap: 4px;
+}
+.fo-cream-item h3 { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.4; }
+.fo-cream-dates {
+  font-size: 15px; font-weight: 500; color: #5b6170; font-variant-numeric: tabular-nums;
+}
+.fo-cream-timeline { margin: 0; font-size: 15px; line-height: 1.6; color: #111111; }
+.fo-cream-quote {
+  margin: 4px 0 0; padding-left: 12px; border-left: 1px solid #1c2130;
+  font-size: 15px; line-height: 1.6; color: #111111;
+}
+.fo-cream-quote cite { font-style: normal; color: #5b6170; margin-left: 6px; }
+
+/* ── 2탭 세그먼트 "사안 댓글 N | 자유 건의 M" — 텍스트 탭 44px, 활성 잉크 700 + 2px 괘선 ──
+   해결 크림면(또는 마스트) 아래, 정렬 줄 위. 40~60대 독자 — 탭 활자 17px. */
+.fo-tabs {
+  display: flex; align-items: stretch; gap: 0 14px;
+  padding: 0 var(--fo-gutter, 20px); margin-top: 12px; /* 28→12px(2026-10-19) — 폰 첫 화면에 글이 더 보이게 */
+  border-bottom: 1px solid var(--line);
+}
+.fo-tabs button {
+  appearance: none; background: none; border: 0; margin: 0; padding: 12px 0 10px;
+  min-height: 44px; display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 17px; font-weight: 500; line-height: 1.3;
+  color: var(--sub); cursor: pointer; white-space: nowrap;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;   /* 활성 2px 괘선이 1px 선을 덮는다 */
+}
+.fo-tabs button b { font-weight: 500; font-variant-numeric: tabular-nums; color: var(--faint-text); } /* 4.54:1 */
+.fo-tabs button[aria-selected="true"] {
+  color: var(--ink); font-weight: 700; border-bottom-color: var(--ink);
+}
+.fo-tabs button[aria-selected="true"] b { color: var(--sub); }
+/* 탭 사이 "|" 세로막대는 삭제(Figma #7 ②) — 간격(gap 14px)과 활자 무게로만 가른다 */
+
+/* ── 정렬 텍스트 탭 "최신순 · 인기순" ─────────────────────────────────── */
+.fo-sort {
+  display: flex; align-items: center; gap: 0 12px;
+  padding: 0 var(--fo-gutter, 20px); margin-top: 28px;
+  border-bottom: 1px solid var(--line);
+}
+/* 정렬 기준 = 가로 스크롤 스트립(Figma #7 ①) — 기준이 늘어도 줄이 접히지 않고 옆으로 밀린다.
+   테두리·면 없는 활자 탭 문법 그대로(활성 = 잉크 700 + 2px 밑줄), 스크롤바는 숨기고
+   손가락은 칩 단위로 멈춘다(scroll-snap). "N편" 은 스트립 밖이라 오른쪽에 고정된다. */
+.fo-sort-scroll {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; align-items: center; gap: 0 18px;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;                 /* 파이어폭스 */
+  -ms-overflow-style: none;
+}
+.fo-sort-scroll::-webkit-scrollbar { display: none; }
+.fo-sort-scroll > button {
+  flex: none; scroll-snap-align: start; white-space: nowrap;
+}
+/* 2탭 바로 아래 정렬 줄 — 두 괘선이 44px 간격으로 잇따른다 */
+.fo-tabs + .fo-sort { margin-top: 0; }
+.fo-sort button {
+  appearance: none; background: none; border: 0; margin: 0; padding: 12px 0;
+  min-height: 44px; font: inherit; font-size: 15px; font-weight: 500;
+  color: var(--sub); cursor: pointer;
+}
+.fo-sort button[aria-pressed="true"] {
+  color: var(--ink); font-weight: 700;
+  text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px;
+}
+/* "|" 구분자 — 목록 정렬 줄에서는 쓰지 않는다(Figma #7 ②). 상세 댓글 정렬 줄만 남는다 */
+.fo-sort .sep { color: var(--faint-text); font-size: 15px; } /* 4.54:1 */
+.fo-sort .fo-count {
+  margin-left: auto; font-size: 15px; font-weight: 500; color: var(--sub);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 사안 그룹 — 크로스뷰 헤드라인(⋯/▬ 두 줄 20px 700) + "의견 N" → 괘선 행 ───
+   그룹 사이 2px 괘선, 행 사이 1px. 마커 색은 6px 도형에만(--macro/--micro). */
+.forum {
+  --macro: #6706d3;           /* 광역 ⋯ 도트 3개(6px)에만 */
+  --micro: #e66bd2;           /* 기초 ▬ 괘선 토막(18×3px)에만 */
+}
+html[data-contrast="high"] .forum { --macro: #f4f5f7; --micro: #f4f5f7; }
+.fo-issues { display: block; }
+.fo-issue { border-top: 2px solid var(--line); }
+.fo-issues > .fo-issue:first-child { border-top: 0; }   /* 정렬 탭 아래 1px 괘선이 이미 있다 */
+.fo-issue-hd {
+  display: flex; align-items: flex-start; gap: 8px 16px;
+  padding: 16px var(--fo-gutter, 20px) 12px;
+  scroll-margin-top: 24px;     /* /forum#issue-<pairId> 앵커 진입 시 그룹 상단 여백 */
+}
+/* 자유 건의 탭 — 그룹 헤더 없는 평면 괘선 행(.fo-row 기본 아래 괘선 1px) */
+.fo-free { display: block; }
+/* 탭 안 빈 상태 — 좌우 기준선에 맞추고 점선 괘선은 위쪽만(정렬 줄 아래 실선이 이미 있다) */
+.fo-empty--tab { margin: 0 var(--fo-gutter, 20px); border-top: 0; }
+.fo-empty--tab small a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+/* 자유 건의 행 아이브로우 "건의" — 12px 대문자 자간(활자 표식, 색 의존 0) */
+.fo-eyebrow {
+  display: block; font-size: 12px; font-weight: 500; line-height: 1.4;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--sub);
+}
+.fo-issue-link { flex: 1 1 auto; min-width: 0; color: inherit; text-decoration: none; }
+.fo-issue-link:hover .fo-issue-text { text-decoration: underline; text-underline-offset: 4px; }
+.fo-issue-head {
+  flex: 1 1 auto; min-width: 0; margin: 0;
+  display: grid; gap: 2px;
+  font-size: 20px; font-weight: 700; line-height: 1.3;
+  letter-spacing: -0.01em; color: var(--ink); text-wrap: balance;
+}
+.fo-issue-head.free .fo-issue-text { font-weight: 700; }
+.fo-issue-line {
+  display: grid; grid-template-columns: 24px 1fr; column-gap: 8px; align-items: start;
+}
+.fo-issue-line.plain { grid-template-columns: 1fr; }
+/* 광역 줄 500 · 기초 줄 700 — 활자 무게로도 가른다 */
+.fo-issue-line.macro .fo-issue-text { font-weight: 500; }
+.fo-issue-line.micro .fo-issue-text { font-weight: 700; }
+/* 마커 — 첫 줄 x-높이 중앙에 앉는다(em 기반) */
+.fo-issue-head .mk { display: inline-flex; align-items: center; gap: 3px; margin-top: calc(0.65em - 3px); }
+.fo-issue-head .mk-macro > i { width: 6px; height: 6px; border-radius: 50%; background: var(--macro); }
+.fo-issue-head .mk-micro { margin-top: calc(0.65em - 1.5px); }
+.fo-issue-head .mk-micro > i { width: 18px; height: 3px; background: var(--micro); }
+.fo-issue-count {
+  flex: none; padding-top: 3px;
+  font-size: 15px; font-weight: 500; line-height: 1.5; color: var(--sub);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+/* 스크린리더 전용 매체 라벨(색 의존 0) */
+.fo-sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ── 목록 괘선 행 — 앞 점(공감 4단) · 제목 20px · "이름 · 날짜" · 우측 공감 숫자 ── */
+.fo-rows { list-style: none; margin: 0; padding: 0; }
+.fo-row {
+  position: relative;
+  display: grid; grid-template-columns: 32px 1fr; column-gap: 12px;
+  padding: 18px var(--fo-gutter, 20px) 12px var(--fo-gutter, 20px);
+  min-height: 64px;
+  border-bottom: 1px solid var(--line);
+}
+/* 사안 그룹 안의 행 — 행 사이 1px(위 괘선), 그룹 마지막 행은 아래 괘선 없음(그룹 2px 가 잇는다) */
+.fo-issue .fo-row { border-bottom: 0; border-top: 1px solid var(--line); }
+/* 우측 공감 열은 없앴다(2026-10-19) — 하트는 아래 줄(.fo-row-foot) 수정·삭제 옆, 본문은 행 폭 전체 */
+.fo-row-foot .fo-like { font-size: 15px; margin-right: 2px; }
+/* 데스크탑: 점은 기준선 왼쪽 여백(76px)에 앉고 제목은 기준선에서 시작한다 */
+@media (min-width: 768px) {
+  .fo-row { padding-left: calc(var(--fo-gutter, 20px) - 44px); }
+}
+.fo-dot {
+  grid-column: 1; grid-row: 1 / span 3; align-self: start;
+  width: 32px; height: 32px; margin-top: -3px;
+  display: grid; place-items: center;
+}
+.fo-dot::before {
+  content: ""; width: var(--d, 12px); height: var(--d, 12px);
+  border-radius: 50%; background: var(--ink); box-sizing: border-box;
+}
+/* 공감 0 = 빈 링(점선 원) · 1~4 = 12px · 5~19 = 16px · 20+ = 24px */
+.fo-dot[data-size="0"]::before { --d: 10px; background: none; border: 1px dotted var(--ink); }
+.fo-dot[data-size="1"]::before { --d: 12px; }
+.fo-dot[data-size="2"]::before { --d: 16px; }
+.fo-dot[data-size="3"]::before { --d: 24px; }
+
+.fo-row-link {
+  grid-column: 2; display: grid; gap: 4px;
+  color: inherit; text-decoration: none;
+}
+.fo-title {
+  margin: 0; font-size: 20px; font-weight: 700; line-height: 1.35;
+  letter-spacing: -0.01em; color: var(--ink); text-wrap: balance;
+}
+.fo-row-link:hover .fo-title { text-decoration: underline; text-underline-offset: 4px; }
+/* 제목 없는 글(사안 댓글) — 본문이 곧 글. 제목 활자(20px 700)가 아니라 본문 활자로 세 줄까지 */
+.fo-text {
+  margin: 0; font-size: 17px; font-weight: 500; line-height: 1.55; color: var(--ink);
+  white-space: pre-line; overflow-wrap: anywhere;
+  /* 8줄까지 그대로 보이고(3줄 → 8줄, 2026-10-19 피드백) 넘치면 "더보기"가 그 자리에서 전부 편다 */
+  display: -webkit-box; -webkit-line-clamp: 8; -webkit-box-orient: vertical; overflow: hidden;
+}
+.fo-text.is-open { display: block; -webkit-line-clamp: unset; overflow: visible; }
+.fo-expand { color: var(--ink); font-weight: 700; }
+.fo-row-link:hover .fo-text { text-decoration: underline; text-underline-offset: 4px; }
+.fo-meta {
+  margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px;
+  font-size: 15px; font-weight: 500; line-height: 1.5; color: var(--sub);
+}
+.fo-meta time { color: inherit; }
+.fo-row-foot {
+  grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 0 18px;
+}
+
+/* ── 밑줄 활자 버튼·링크(신고/수정/삭제/↔ 크로스뷰) — 탭 타깃 44px ───────── */
+.fo-textbtn,
+.fo-textlink {
+  appearance: none; background: none; border: 0; margin: 0; padding: 10px 0;
+  min-height: 44px; display: inline-flex; align-items: center; gap: 4px;
+  font: inherit; font-size: 15px; font-weight: 500; color: var(--sub);
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.fo-textbtn:hover,
+.fo-textlink:hover { color: var(--ink); }
+.fo-textbtn[aria-expanded="true"] { color: var(--ink); font-weight: 700; }
+.fo-xlink { color: var(--ink); font-weight: 700; }
+.fo-stat {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 10px 0;
+  font-size: 15px; font-weight: 500; color: var(--sub); font-variant-numeric: tabular-nums;
+}
+
+/* ── 인라인 확인 폼(수정·삭제) — 괘선 상하 ──────────────────────────────── */
+.fo-inline {
+  grid-column: 1 / -1; width: 100%; flex-basis: 100%;
+  margin-top: 6px; padding: 12px 0 14px;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  display: grid; gap: 6px;
+}
+.fo-inline p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--ink); }
+.fo-inline p.q { font-weight: 700; }
+.fo-inline p.note { color: var(--sub); }
+.fo-inline-actions { display: flex; justify-content: flex-end; gap: 0 20px; padding-top: 4px; }
+
+/* ── 입력 — 괘선 상하 입력(테두리 없음, 아래 괘선 1px, 포커스 2px) ──────── */
+.fo-field { display: grid; gap: 2px; }
+.fo-label {
+  padding-top: 10px; font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.5;
+}
+.fo-label small { font-size: 15px; font-weight: 500; color: var(--sub); }
+.fo-input,
+.fo-textarea {
+  appearance: none; width: 100%; margin: 0; padding: 10px 0;
+  background: transparent; color: var(--ink);
+  border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none;
+  font: inherit; font-size: 17px; line-height: 1.65; min-height: 44px;
+}
+.fo-textarea { resize: vertical; }
+.fo-input::placeholder,
+.fo-textarea::placeholder { color: var(--faint-text); } /* 종이 위 4.54:1 */
+.fo-input:focus,
+.fo-textarea:focus {
+  outline: none; border-bottom-color: var(--ink); border-bottom-width: 2px; padding-bottom: 9px;
+}
+/* 오류 = 점선(아직 없음/미완) + 활자 안내. 색에 기대지 않는다 */
+.fo-input[aria-invalid="true"],
+.fo-textarea[aria-invalid="true"] { border-bottom-style: dashed; }
+.fo-err { margin: 0; font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.5; }
+.fo-hint { margin: 0; font-size: 15px; font-weight: 500; color: var(--sub); line-height: 1.5; }
+.fo-counter { font-size: 15px; font-weight: 500; color: var(--sub); font-variant-numeric: tabular-nums; }
+.fo-form { display: grid; gap: 4px; padding-top: 6px; }
+.fo-form-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px;
+}
+.fo-form-foot .fo-hint,
+.fo-form-foot .fo-err { flex: 1 1 auto; }
+
+/* ── 글쓰기 섹션 ─────────────────────────────────────────────────────── */
+.fo-write {
+  margin-top: 8px; padding: 28px var(--fo-gutter, 20px) 0;
+  scroll-margin-top: 16px; display: grid; gap: 2px;
+}
+.fo-write h2 { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.3; }
+.fo-write-sub { margin: 0; font-size: 15px; font-weight: 500; color: var(--sub); }
+
+/* ── '올리기' 잉크 원 62px — 활자 버튼 ──────────────────────────────────── */
+.fo-orb {
+  appearance: none; flex: none; width: 62px; height: 62px; margin: 0; padding: 0;
+  border: 0; border-radius: 50%; box-shadow: none;
+  background: var(--ink); color: var(--paper);
+  display: grid; place-items: center;
+  font: inherit; font-size: 15px; font-weight: 700; line-height: 1; cursor: pointer;
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.fo-orb:active { transform: scale(0.94); }
+.fo-orb:disabled { background: var(--faint); cursor: default; transform: none; }
+/* 모바일 '글쓰기' 고정 버튼 — 네비(64px) 위 88px, 우측 = 지면 여백. 데스크탑(사이드 레일)에서는 숨김.
+   시범단 #180: 원(72px) → '올리기'(.opc-submit)와 같은 문법의 검정 직사각형(높이 52px, 모서리 0) */
+.fo-fab {
+  position: fixed; z-index: 25;
+  right: var(--fo-gutter, 20px); bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  min-height: 52px; padding: 0 22px; border-radius: 0;
+  background: var(--ink); color: var(--paper);
+  display: grid; place-items: center; text-decoration: none;
+  font-size: 17px; font-weight: 700; line-height: 1; letter-spacing: -0.01em;
+  /* 어떤 바탕(크림 타일·검은 타일) 위에서도 보이게 — 종이색 테두리 + 아래로 떨어지는 그림자(사용자 요청: 잘 보이게) */
+  box-shadow: 0 0 0 3px var(--paper), 0 8px 20px rgba(17, 17, 17, 0.28);
+}
+.fo-fab:active { transform: translateY(1px); }
+/* 재생 중 대본 띠(now-line 44px)가 있으면 그만큼 올린다 */
+html[data-now-line] .fo-fab { bottom: calc(88px + 44px + env(safe-area-inset-bottom, 0px)); }
+html[data-install-band] .fo-fab { bottom: calc(88px + 48px + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 1100px) { .fo-fab { display: none; } }
+/* "N편" 은 오른쪽 지면 여백선에 그대로 둔다 — 아래 행의 "의견 N"·공감 수와 같은 선(시범단 #180).
+   버튼은 화면 아래에 고정이라 정렬 줄과 겹치는 순간이 거의 없고, 겹쳐도 스크롤로 벗어난다 */
+
+/* ── 상세 ──────────────────────────────────────────────────────────────── */
+.fo-detail { padding: 16px var(--fo-gutter, 20px) 0; }
+.fo-back {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 44px; width: fit-content;
+  font-size: 15px; font-weight: 500; color: var(--sub);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.fo-back:hover { color: var(--ink); }
+.fo-h1 {
+  margin: 12px 0 0; font-size: 28px; font-weight: 700; line-height: 1.3;
+  letter-spacing: -0.015em; color: var(--ink); text-wrap: balance;
+}
+.fo-byline { margin-top: 10px; }
+.fo-body {
+  margin: 20px 0 0; font-size: 17px; line-height: 1.7; color: var(--ink); white-space: pre-wrap;
+}
+/* 제목 없는 글의 본문 — 제목 자리를 이어받아 바이라인 바로 아래, 조금 큰 활자 */
+.fo-body--lead { margin-top: 14px; font-size: 19px; line-height: 1.6; }
+/* 상세 상단 사안 헤더 — 마커 두 줄(있을 때) + "↔ 크로스뷰로". 아래 괘선으로 제목과 가른다 */
+.fo-detail-issue {
+  margin-top: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+  display: grid; gap: 2px;
+}
+.fo-detail-issue .fo-issue-head { font-size: 20px; }
+.fo-detail-issue .fo-xlink { width: fit-content; }
+/* 액션 줄 — 좌(공감·댓글수) / 우(신고·수정·삭제) 15px 한 줄. 넘치면 우측 그룹만 다음 줄 */
+.fo-actbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 18px;
+  margin-top: 20px; padding-top: 4px; border-top: 1px solid var(--line);
+}
+.fo-act-l,
+.fo-act-r { display: flex; flex-wrap: wrap; align-items: center; gap: 0 18px; }
+.fo-act-l { flex: none; }
+.fo-act-r { flex: 0 1 auto; margin-left: auto; justify-content: flex-end; }
+/* 인라인 확인 폼(수정·삭제)이 열리면 우측 그룹이 전폭으로 내려온다 */
+.fo-act-r:has(.fo-inline) { flex: 1 1 100%; }
+.fo-act-r .fo-inline { flex-basis: 100%; }
+
+/* ── 공감 = 빈 링(점선 원 24px) → 채운 점(200ms) ────────────────────────── */
+.fo-like {
+  appearance: none; background: none; border: 0; margin: 0; padding: 10px 0;
+  min-height: 44px; display: inline-flex; align-items: center; gap: 8px;
+  font: inherit; font-size: 15px; font-weight: 700; color: var(--ink);
+  font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.fo-like-heart {
+  width: 22px; height: 22px; flex: none;
+  fill: transparent; stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round;
+  transition: fill 200ms ease, transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.fo-like[aria-pressed="true"] .fo-like-heart { fill: var(--ink); transform: scale(1.08); }
+.fo-like.sm .fo-like-heart { width: 18px; height: 18px; }
+.fo-like:disabled { color: var(--faint-text); cursor: default; } /* 공감 수 글자 — 4.54:1(링은 장식이라 --faint 유지) */
+.fo-like:disabled .fo-like-heart { stroke: var(--faint); }
+
+/* ── '이 사안 온도' 눈금 — 12칸, 수은은 여기에만. 공감 시 한 칸 흔들림 ───── */
+.fo-gauge {
+  margin-top: 16px; padding: 10px 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px;
+  font-size: 15px; line-height: 1.5;
+}
+.fo-gauge-label { font-weight: 500; color: var(--sub); }
+.fo-gauge-ticks {
+  display: inline-flex; align-items: flex-end; gap: 4px; height: 14px;
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.fo-gauge-ticks i { display: block; width: 2px; height: 10px; background: var(--faint); }
+.fo-gauge-ticks i.on { height: 14px; background: var(--fo-hg); }
+.fo-gauge.is-nudge .fo-gauge-ticks { transform: translateX(6px); }
+.fo-gauge-val { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.fo-gauge-val a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.fo-gauge-pending { font-weight: 500; color: var(--sub); }
+html[data-contrast="high"] .fo-gauge-ticks i.on { background: var(--fo-hg-soft); }
+
+/* ── "다른 최신 건의" — 상세 댓글 뒤(모바일) / 우 레일(데스크탑). 1px 괘선 행 ── */
+.fo-related { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--line); }
+.fo-related h2 { margin: 0 0 4px; font-size: 17px; font-weight: 700; line-height: 1.3; }
+.fo-related ul { list-style: none; margin: 0; padding: 0; }
+.fo-related li { border-top: 1px solid var(--line); }
+.fo-related li:first-child { border-top: 0; }
+.fo-related a {
+  display: grid; gap: 2px; min-height: 44px; padding: 10px 0;
+  color: inherit; text-decoration: none;
+}
+.fo-related a:hover .fo-related-title { text-decoration: underline; text-underline-offset: 4px; }
+/* 제목 1줄 말줄임(고령 독자 17px) + 날짜 15px */
+.fo-related-title {
+  font-size: 17px; font-weight: 700; line-height: 1.4; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fo-related-date { font-size: 15px; font-weight: 500; line-height: 1.5; color: var(--sub); }
+
+/* ── 내 글 잉크 점 — localStorage 에 있는 id 면 제목 옆에 날아와 앉는다 ───── */
+.fo-mine {
+  display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--ink); vertical-align: middle; margin-left: 8px;
+  transform: translateX(-10px); opacity: 0;
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 300ms ease;
+}
+.fo-mine.is-landed { transform: none; opacity: 1; }
+
+/* ── 댓글 — 인용괘선 목록 ──────────────────────────────────────────────── */
+.fo-comments-head {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px;
+  margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--line);
+}
+.fo-comments-head h2 { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.3; }
+.fo-comments-head h2 span { font-weight: 500; color: var(--sub); font-variant-numeric: tabular-nums; }
+.fo-comments-head .fo-sort { margin: 0; padding: 0; border: 0; margin-left: auto; }
+.fo-comments { list-style: none; margin: 8px 0 0; padding: 0; }
+.fo-comment {
+  margin-top: 10px; padding: 10px 0 8px 16px;
+  border-left: 1px solid var(--line);
+  display: grid; gap: 4px;
+}
+.fo-comment.is-hidden { border-left-style: dotted; }
+.fo-comment-body {
+  margin: 0; font-size: 17px; line-height: 1.65; color: var(--ink); white-space: pre-wrap;
+}
+
+/* ── [결정 6] 글 제목과 댓글의 활자 분리 — 상세(.fo-detail)에서만 ──────────
+   같은 지면에 '글'과 '댓글'이 이어 붙어 있어 어디까지가 글인지 눈으로 끊기지 않았다.
+   ① 글: 제목 26px 800 · 본문 18px(고령 독자 기준 유지)
+   ② 댓글: 16px · 왼쪽 44px 들여쓰기 · 인용 괘선은 옅게(--faint, 장식 전용 색)
+   → 활자 크기(18 vs 16)와 단의 시작선(0 vs 44px)이 함께 달라져 두 단이 갈라진다.
+   모바일·데스크탑 공통. 큰글씨 모드(html[data-font-size="large"])는 아래에서 다시 덮는다. */
+.fo-detail .fo-h1 { font-size: 26px; font-weight: 800; }
+.fo-detail .fo-body { font-size: 18px; }
+.fo-detail .fo-comment {
+  padding-left: 44px;                 /* 댓글 단 들여쓰기 — 글 본문(0)과 갈라진다 */
+  border-left-color: var(--faint);    /* 인용 괘선은 옅게 — 잉크 괘선은 글의 것 */
+}
+.fo-detail .fo-comment-body { font-size: 16px; line-height: 1.6; }
+.fo-comment-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; margin-top: -4px; }
+/* 댓글 작성은 <OpinionComposer variant="comment">(app/composer.css .opc) — 여기 규칙 없음.
+   .fo-form/.fo-field/.fo-input/.fo-orb 는 수정·삭제 인라인 폼(edit-button·delete-button)과
+   deprecated PostForm 이 아직 쓴다. */
+.fo-empty {
+  margin-top: 12px; padding: 20px 0;
+  border-top: 1px dotted var(--line); border-bottom: 1px dotted var(--line);
+}
+.fo-empty p { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.5; color: var(--ink); }
+.fo-empty small { display: block; margin-top: 4px; font-size: 15px; font-weight: 500; color: var(--sub); }
+.fo-empty a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+/* 삭제·가려짐 자리표시자 — 점선 인용괘선 */
+.fo-hidden { padding: 4px 0 4px 12px; border-left: 1px dotted var(--line); display: grid; gap: 2px; }
+.fo-hidden b { font-size: 15px; font-weight: 700; color: var(--ink); }
+.fo-hidden p { margin: 0; font-size: 15px; font-weight: 500; color: var(--sub); }
+
+/* 오류 안내(목록 로드 실패 등) */
+.fo-alert {
+  margin: 0; padding: 20px var(--fo-gutter, 20px);
+  border-top: 1px dotted var(--line); border-bottom: 1px dotted var(--line);
+  font-size: 17px; font-weight: 700; color: var(--ink);
+}
+.fo-more { padding: 8px var(--fo-gutter, 20px) 0; display: flex; }
+.fo-more .fo-textbtn { font-size: 17px; font-weight: 700; color: var(--ink); }
+
+/* 로딩 — 괘선이 점선으로 그려지고 데이터가 도착하면 실선이 된다(시머 없음) */
+/* 로딩 스켈레톤 — 점선 막대(아직 없음) 문법. 회색 면·시머 없음 */
+.fo-loading-tabs { display: flex; gap: 24px; padding: 18px var(--fo-gutter, 20px) 12px; border-bottom: 1px solid var(--line); }
+.fo-loading-tabs i { display: block; height: 0; border-top: 2px dashed var(--faint); margin-top: 10px; }
+.fo-loading-row {
+  position: relative; min-height: 96px; padding: 22px var(--fo-gutter, 20px) 0 44px;
+  border-bottom: 1px dotted var(--line);
+}
+.fo-loading-row i { display: block; height: 0; }
+.fo-sk-dot { position: absolute; left: var(--fo-gutter, 20px); top: 26px; width: 10px; height: 10px !important; border-radius: 50%; border: 1px dashed var(--faint); }
+.fo-sk-title { border-top: 2px dashed var(--sub); margin-top: 4px; }
+.fo-sk-meta { border-top: 1px dashed var(--faint); margin-top: 22px; }
+.fo-loading-note {
+  padding: 14px var(--fo-gutter, 20px) 0; font-size: 15px; font-weight: 500; color: var(--sub);
+}
+
+/* 신고 다이얼로그 내부 — 라디오 행은 괘선으로 */
+.fo-reason {
+  display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 8px 0;
+  border-bottom: 1px solid var(--line); font-size: 17px; cursor: pointer;
+}
+.fo-reason input { accent-color: var(--ink); width: 18px; height: 18px; margin: 0; }
+.fo-reason.on { font-weight: 700; }
+
+/* 큰글씨 모드 — 본문 21 · 메타 18 · 제목 24 · 헤드라인 30 */
+html[data-font-size="large"] .fo-body,
+html[data-font-size="large"] .fo-comment-body,
+html[data-font-size="large"] .fo-input,
+html[data-font-size="large"] .fo-textarea { font-size: 21px; }
+html[data-font-size="large"] .fo-meta,
+html[data-font-size="large"] .fo-textbtn,
+html[data-font-size="large"] .fo-textlink,
+html[data-font-size="large"] .fo-like,
+html[data-font-size="large"] .fo-stat,
+html[data-font-size="large"] .fo-label,
+html[data-font-size="large"] .fo-hint,
+html[data-font-size="large"] .fo-err,
+html[data-font-size="large"] .fo-sort button,
+html[data-font-size="large"] .fo-gauge { font-size: 18px; }
+html[data-font-size="large"] .fo-issue-count,
+html[data-font-size="large"] .fo-row-foot .fo-like { font-size: 18px; }
+html[data-font-size="large"] .fo-tabs button { font-size: 20px; }
+html[data-font-size="large"] .fo-eyebrow { font-size: 14px; }
+html[data-font-size="large"] .fo-text { font-size: 20px; }
+html[data-font-size="large"] .fo-body--lead { font-size: 22px; }
+html[data-font-size="large"] .fo-title,
+html[data-font-size="large"] .fo-issue-head,
+html[data-font-size="large"] .fo-write h2,
+html[data-font-size="large"] .fo-comments-head h2 { font-size: 24px; }
+html[data-font-size="large"] .fo-h1 { font-size: 30px; }
+html[data-font-size="large"] .fo-fab { font-size: 19px; }
+
+/* 고대비 — 잉크 원 위 활자는 검은 세계색 */
+html[data-contrast="high"] .fo-orb,
+html[data-contrast="high"] .fo-fab { background: #f4f5f7; color: #0b0d12; }
+
+/* 모션 최소화 — 점은 순간 이동 */
+@media (prefers-reduced-motion: reduce) {
+  .fo-like-heart,
+  .fo-gauge-ticks,
+  .fo-mine,
+  .fo-orb { transition: none; }
+  .fo-gauge.is-nudge .fo-gauge-ticks { transform: none; }
+}
+
+/* ==========================================================================
+   데스크탑 판형(≥1100px) — 「데스크탑은 화면을 크게 쓴다」 계약. 모바일 규칙 무변경.
+   컨테이너(.reels-page: 가용 908 / 1100 / 1332px)는 app/reels.css 가 잡고, 여기서는
+   공론장 안쪽만 다단으로 편다. 카드·면 없음 — 열 사이는 빈 종이(gap)와 괘선뿐.
+   목록(.forum-list): 좌 본문 열(탭·정렬·괘선 목록, ≥1440 2단 격자 · 제목 2줄 클램프)
+     + 우 sticky 레일(해결 크림면 → 자유 건의 작성기). DOM 순서(해결→탭→목록→쓰기)는
+     그대로 두고 grid 자리만 준다 — 모바일은 원래 순서로 흐른다.
+   상세(.fo-detail): 좌 본문(--dk-read 760) + 우 레일('이 사안 온도' 눈금 sticky →
+     그 아래 "다른 최신 건의" 5건). 눈금은 article 행(2행)에서, 목록은 댓글 행(3행)에서
+     각각 sticky — 눈금이 없으면 목록이 2~3행 전체를 쓰고, 둘 다 없으면(.fo-detail--norail)
+     레일을 접고 본문 열을 가운데에 둔다. "↔ 크로스뷰로"는 article 머리 안에 남는다(DOM 이동 없음).
+   기준선 --fo-gutter 44px = 앞 점(32px)+12px 이 왼쪽 여백에 앉고 제목이 기준선에서 시작.
+   ========================================================================== */
+@media (min-width: 1100px) {
+  .forum {
+    --fo-gutter: 44px;
+    --fo-rail: 360px;          /* 우 레일 폭 */
+    --fo-rail-gap: 48px;       /* 본문 열 ↔ 레일 */
+  }
+
+  /* ── 목록 — 2열 grid: 1행 마스트 · 2행 크림면(레일) · 3행 작성기(레일), 목록은 2~3행 ── */
+  .forum-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--fo-rail);
+    grid-template-rows: auto auto 1fr;
+    column-gap: var(--fo-rail-gap);
+    align-items: start;
+  }
+  .forum-list > * { grid-column: 1; min-width: 0; }
+  .forum-list > .fo-mast { grid-column: 1 / -1; grid-row: 1; }
+  .forum-list > .fo-tabs { margin-top: 28px; } /* 데스크탑은 제호 아래 숨 고르기 유지 */
+  .forum-list > .fo-cream {
+    grid-column: 2; grid-row: 2;
+    margin-top: 28px;                 /* 좌 열의 탭(margin-top 28px)과 윗선을 맞춘다 */
+    padding-left: 24px; padding-right: 24px;
+  }
+  .forum-list > .fo-list { grid-column: 1; grid-row: 2 / span 2; }
+  .forum-list > .fo-write {
+    grid-column: 2; grid-row: 3;
+    position: sticky; top: 24px; align-self: start;
+    margin-top: 28px; padding: 0;
+  }
+  /* 레일 안 '올리기'는 다시 전폭 검정 블록(좁은 열에서 우측 정렬 160px 는 어색) */
+  .forum-list > .fo-write .opc-submit { width: 100%; min-width: 0; justify-self: stretch; }
+  /* 로딩 지면(점선 행)은 좌 열에 */
+  .forum-list > .fo-loading-note,
+  .forum-list > .fo-rows { grid-column: 1; }
+
+  /* 괘선 행 — 앞 점은 기준선 왼쪽 여백(0~32px), 제목은 44px 기준선에서 */
+  .fo-row { padding-left: 0; }
+
+  /* ── 상세 — 좌 본문(≤ --dk-read) + 우 레일(눈금 sticky) ─────────────────── */
+  .fo-detail {
+    padding-left: 0; padding-right: 0;
+    display: grid;
+    grid-template-columns: minmax(0, var(--dk-read)) minmax(260px, 1fr);
+    column-gap: var(--fo-rail-gap);
+    align-items: start;
+  }
+  .fo-detail > * { grid-column: 1; min-width: 0; }
+  .fo-detail > .fo-back { grid-row: 1; }
+  .fo-detail > article { grid-row: 2; }
+  .fo-detail > section { grid-row: 3; }
+  .fo-detail > .fo-gauge {
+    grid-column: 2; grid-row: 2; align-self: start;
+    position: sticky; top: 24px;
+    margin-top: 12px; max-width: var(--fo-rail);
+    display: grid; gap: 8px;          /* 레일에서는 라벨·눈금·값을 세 줄로 */
+  }
+  /* 최신 건의 — 레일 3행(댓글 옆), 눈금이 없으면 2~3행. 댓글이 길어도 위에 붙어 있게 sticky */
+  .fo-detail > .fo-related {
+    grid-column: 2; grid-row: 3; align-self: start;
+    position: sticky; top: 24px;
+    margin-top: 0; padding-top: 0; border-top: 0; max-width: var(--fo-rail);
+  }
+  .fo-detail:not(:has(> .fo-gauge)) > .fo-related { grid-row: 2 / span 2; margin-top: 12px; }
+  .fo-detail > .fo-related li:first-child { border-top: 1px solid var(--line); }
+  /* 레일에 앉힐 게 없으면(눈금·최신 건의 둘 다 없음) 1열로 접고 본문을 가운데에 */
+  .fo-detail--norail {
+    grid-template-columns: minmax(0, var(--dk-read));
+    justify-content: center;
+  }
+}
+@media (min-width: 1440px) {
+  .forum { --fo-rail: 400px; --fo-rail-gap: 56px; }
+  /* 목록 2단 격자 — 행 높이는 grid 가 맞추고 제목은 2줄에서 자른다 */
+  .forum-list .fo-rows {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px;
+  }
+  .forum-list .fo-rows > li { display: grid; min-width: 0; }
+  .forum-list .fo-title {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  /* 활자 — 본문 18→19, 상세 제목 26→32. 댓글은 [결정 6] 대로 16px 로 고정한다
+     (넓은 화면에서 댓글까지 커지면 글과 댓글의 단 구분이 다시 흐려진다) */
+  .fo-detail .fo-body { font-size: 19px; }
+  .fo-detail .fo-h1 { font-size: 32px; }
+}
+@media (min-width: 1800px) {
+  .forum { --fo-rail: 440px; --fo-rail-gap: 64px; }
+}
+
+/* ── 글 사진 1장 (2026-10-19) — 스레드처럼: 테두리 없음, 네 모서리 12px, 본문 폭 가득(대표 피드백).
+   「일점 지면」의 모서리 0 규칙에서 사진만 예외로 둔다 — 사진은 지면의 '창'이지 상자가 아니다. */
+.fo-row-img {
+  display: block; margin-top: 10px; width: 100%; max-height: 420px; object-fit: cover;
+  border: 0; border-radius: 12px; background: var(--muted, #e9eaee);
+}
+.fo-figure { margin: 16px 0 0; }
+.fo-figure img { display: block; width: 100%; max-height: 640px; object-fit: contain; height: auto; border: 0; border-radius: 12px; background: var(--muted, #e9eaee); }
+@media (min-width: 768px) { .fo-row-img { max-height: 480px; } }
+
+/* 내 글 잉크 점 — 본문 활자(.fo-text) 안에서는 줄을 바꾸지 않고 글 끝에 붙는다(2026-10-19, 제목 숨김 뒤) */
+.fo-text .fo-mine { display: inline-block; vertical-align: middle; margin-left: 6px; }
+
+/* ── 행 안 댓글 (2026-10-20) — 아래 줄 "말풍선 N" 토글 → 인용괘선 댓글 목록 + 작성기 ────── */
+.fo-cmt {
+  appearance: none; background: none; border: 0; margin: 0; padding: 10px 0;
+  min-height: 44px; display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 15px; font-weight: 700; color: var(--ink);
+  font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.fo-cmt-ic { width: 20px; height: 20px; fill: transparent; stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; transition: fill 200ms ease; }
+.fo-cmt[aria-expanded="true"] .fo-cmt-ic { fill: var(--ink); }
+.fo-row-comments { grid-column: 2; display: grid; gap: 12px; margin-top: 4px; padding-top: 4px; }
+.fo-row-comments .fo-comments { margin-top: 0; }
+.fo-row-comments .fo-hint { padding: 6px 0 0 16px; border-left: 1px solid var(--line); }
+.fo-row-comments .opc-inrow { margin-top: 4px; }
+html[data-font-size="large"] .fo-cmt { font-size: 18px; }

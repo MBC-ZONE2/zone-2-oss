@@ -1,0 +1,52 @@
+name: Bug report / 버그 신고
+description: Something does not work as described. 설명과 다르게 동작합니다. (English or Korean / 한국어로 쓰셔도 됩니다)
+title: "[fix] "
+labels: [bug]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area / 기능
+      options:
+        - CrossView / 크로스뷰
+        - Opinion Thermometer / 공론 온도계
+        - AI podcast / AI 팟캐스트
+        - Forum / 공론장
+        - Public notices / 공고
+        - Admin / 관리자
+        - Ingest or adapters / 수집·어댑터
+        - Setup, build, or deploy / 설치·빌드·배포
+        - Other / 기타
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened / 무슨 일이 있었나요
+      description: What you did, what you saw, what you expected. 한 일·본 것·기대한 것.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / 재현 단계
+      value: |
+        1.
+        2.
+        3.
+  - type: input
+    id: version
+    attributes:
+      label: Commit or version / 커밋·버전
+      placeholder: "git rev-parse --short HEAD"
+  - type: input
+    id: env
+    attributes:
+      label: Environment / 환경
+      placeholder: "macOS 15 · Node 22 · Supabase CLI 2.x · Chrome 130 (or a phone model)"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots / 로그·스크린샷
+      description: Paste terminal output or a screenshot. Remove keys, tokens, and personal data first. 키·토큰·개인정보는 지우고 붙여 주세요.
+      render: text

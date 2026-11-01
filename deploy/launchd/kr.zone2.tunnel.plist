@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ZONE-2 self-host: Cloudflare Named Tunnel 'zone2' 상시 구동.
+     고정 도메인: https://mbcok.com (베타) / https://www.mbcok.com (실앱) -> 로컬.
+     커넥터 토큰은 ~/.cloudflared/zone2-connector-token.txt (600) 에서 읽어
+     TUNNEL_TOKEN 환경변수로 주입한다(ps args 노출 방지).
+     ingress/DNS 는 Cloudflare 원격 관리(API/대시보드).
+     구 Quick Tunnel plist 백업: /tmp/kr.zone2.tunnel.quick.bak.plist -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>kr.zone2.tunnel</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>-c</string>
+    <string>export TUNNEL_TOKEN="$(cat "$HOME/.cloudflared/zone2-connector-token.txt")"; exec /opt/homebrew/bin/cloudflared --no-autoupdate --protocol http2 tunnel run</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/tmp/zone2-tunnel.log</string>
+  <key>StandardErrorPath</key><string>/tmp/zone2-tunnel.log</string>
+</dict>
+</plist>

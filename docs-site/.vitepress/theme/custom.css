@@ -1,0 +1,1309 @@
+/* =========================================================================
+   ZONE-2 Docs — custom theme
+   광역(MBC충북) × 기초(옥천신문) 지역 공론 미디어.
+   Editorial(신문) 감성 + 모던 product-docs. 네이비 브랜드.
+   Offline-safe: 외부 CDN 폰트/스크립트 없음. 시스템/VitePress 폰트만 사용.
+   light/dark 대응 · prefers-reduced-motion 존중.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   1. Design tokens
+   ------------------------------------------------------------------------- */
+:root {
+  /* === ZONE-2 발표덱 v4 브랜드 트라이어드 =========================
+     크림/종이(bg) · 테라코타 레드(accent) · 잉크(heading) · 뮤트.
+     아래 --z-navy-* / --z-gold-* 는 하위 컴포넌트 호환용 별칭 —
+     이름은 유지하되 값을 새 팔레트로 재매핑한다.
+     · navy-900..500 = 웜 잉크/다크(구조·반전 카드)
+     · navy-400..300 = 테라코타(액센트·화살표·보더)
+     · gold-*        = 테라코타(단일 액센트 통일)
+     ================================================================ */
+  --z-cream: #f4efe6; /* 라이트 기본 배경 */
+  --z-cream-2: #ece4d6; /* 더 깊은 크림(내비·사이드바) */
+  --z-paper: #fcf9f3; /* 카드·융기 표면(살짝 밝게) */
+  --z-paper-2: #f4efe6;
+  --z-ink-900: #1e1b18; /* 헤딩 잉크 */
+  --z-ink-700: #2e2823;
+  --z-muted: #8a8178; /* 뮤트 */
+
+  --z-terra-600: #a5371f;
+  --z-terra-500: #c0442e; /* 핵심 accent */
+  --z-terra-400: #d65a43;
+  --z-terra-300: #e27b64;
+
+  /* 다크 표면 */
+  --z-dark-bg: #1c1a18;
+  --z-dark-card: #26221d;
+  --z-dark-line: #d65a43;
+
+  /* --- 별칭(하위 호환): 잉크 스케일 --- */
+  --z-navy-900: #141110;
+  --z-navy-800: #1c1613;
+  --z-navy-700: #241d18;
+  --z-navy-600: #2f2620;
+  --z-navy-500: #3d322a;
+  --z-navy-400: #c0442e; /* 액센트=테라코타 */
+  --z-navy-300: #d65a43;
+  --z-navy-200: #e9c9c0;
+  --z-navy-100: #f6e9e4;
+  /* --- 별칭: 골드 → 테라코타 --- */
+  --z-gold-600: #a5371f;
+  --z-gold-500: #c0442e;
+  --z-gold-400: #d65a43;
+
+  /* Typographic scale (fluid) */
+  --z-step-hero: clamp(2.6rem, 1.6rem + 4.4vw, 4.6rem);
+  --z-lead: clamp(1.05rem, 0.98rem + 0.5vw, 1.28rem);
+
+  /* Serif accent stack — 헤드라인 액센트. Korean은 시스템 명조로 폴백. */
+  --z-font-serif: Georgia, "Times New Roman", "Apple SD Gothic Neo",
+    "Nanum Myeongjo", "Noto Serif KR", "AppleMyungjo", serif;
+
+  /* Motion */
+  --z-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --z-dur: 0.55s;
+}
+
+/* ---- Light theme mapping (크림/테라코타/잉크) ---- */
+:root {
+  --vp-c-brand-1: var(--z-terra-500);
+  --vp-c-brand-2: var(--z-terra-600);
+  --vp-c-brand-3: var(--z-terra-400);
+  --vp-c-brand-soft: rgba(192, 68, 46, 0.12);
+
+  --vp-c-bg: var(--z-cream);
+  --vp-c-bg-alt: var(--z-cream-2);
+  --vp-c-bg-soft: var(--z-paper); /* 카드=크림보다 살짝 밝은 종이 */
+  --vp-c-bg-elv: #ffffff;
+  --vp-c-text-1: var(--z-ink-900);
+  --vp-c-text-2: var(--z-muted);
+
+  --vp-c-divider: rgba(30, 27, 24, 0.12);
+  --vp-c-gutter: rgba(30, 27, 24, 0.08);
+
+  /* Buttons — 테라코타 */
+  --vp-button-brand-bg: var(--z-terra-500);
+  --vp-button-brand-hover-bg: var(--z-terra-600);
+  --vp-button-brand-active-bg: #8f2f1a;
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-hover-border: transparent;
+
+  /* Home hero name — 히어로는 사진 위 흰 글씨로 별도 처리 */
+  --vp-home-hero-name-color: #ffffff;
+
+  /* Custom-block tip — 테라코타 틴트 */
+  --vp-custom-block-tip-border: transparent;
+  --vp-custom-block-tip-bg: rgba(192, 68, 46, 0.08);
+  --vp-custom-block-tip-text: var(--z-ink-900);
+}
+
+/* ---- Dark theme mapping (웜 다크 + 동일 테라코타) ---- */
+.dark {
+  --vp-c-brand-1: #e2836b;
+  --vp-c-brand-2: var(--z-terra-400);
+  --vp-c-brand-3: var(--z-terra-500);
+  --vp-c-brand-soft: rgba(214, 90, 67, 0.18);
+
+  --vp-c-bg: #1c1a18;
+  --vp-c-bg-alt: #211e1b;
+  --vp-c-bg-soft: #26221d;
+  --vp-c-bg-elv: #2a251f;
+  --vp-c-text-1: #f3ede4;
+  --vp-c-text-2: #a89e93;
+
+  --vp-c-divider: rgba(243, 237, 228, 0.13);
+  --vp-c-gutter: rgba(0, 0, 0, 0.4);
+
+  --vp-button-brand-bg: var(--z-terra-500);
+  --vp-button-brand-hover-bg: var(--z-terra-400);
+  --vp-button-brand-active-bg: var(--z-terra-600);
+  --vp-button-brand-text: #ffffff;
+
+  --vp-custom-block-tip-bg: rgba(214, 90, 67, 0.14);
+  --vp-custom-block-tip-text: #f3ede4;
+}
+
+/* Font base — keep VitePress Inter + robust Korean fallbacks */
+:root {
+  --vp-font-family-base: "Inter", -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic",
+    system-ui, sans-serif;
+}
+
+/* -------------------------------------------------------------------------
+   2. Global rhythm & links
+   ------------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+}
+
+.vp-doc {
+  line-height: 1.75;
+}
+
+.vp-doc a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.2s var(--z-ease);
+}
+
+/* Section headings get an editorial serif accent + subtle underline mark */
+.vp-doc h1,
+.vp-doc h2 {
+  letter-spacing: -0.01em;
+}
+.vp-doc h1 {
+  font-family: var(--z-font-serif);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 1.5rem + 1.6vw, 2.6rem);
+}
+.vp-doc h2 {
+  padding-top: 1.6rem;
+  margin-top: 2.6rem;
+  border-top: 1px solid var(--vp-c-divider);
+}
+.vp-doc h2::before {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 3px;
+  margin-bottom: 0.9rem;
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--vp-c-brand-2),
+    var(--z-gold-500)
+  );
+}
+
+/* -------------------------------------------------------------------------
+   3. Home hero — layered gradient, entrance animation
+   ------------------------------------------------------------------------- */
+.VPHome {
+  position: relative;
+  overflow-x: clip;
+}
+
+/* 히어로 사진(풀블리드) — VPHero 자체 ::before 로 100vw 커버.
+   덱 표지의 어두운 net 사진 + 다크 오버레이 위에 흰 글씨. */
+.VPHome .VPHero {
+  position: relative;
+  isolation: isolate;
+  padding-top: clamp(3.5rem, 2rem + 7vw, 7rem);
+  padding-bottom: clamp(3.5rem, 2rem + 7vw, 6.5rem);
+  margin-bottom: 10px;
+}
+.VPHome .VPHero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background-image:
+    linear-gradient(rgba(20, 16, 14, 0.62), rgba(20, 16, 14, 0.78)),
+    url("/brand/hero-net.jpg");
+  background-position: center, center 26%;
+  background-size: cover, cover;
+  background-repeat: no-repeat;
+}
+/* 하단을 배경색으로 부드럽게 페이드(피처 섹션과 연결) */
+.VPHome .VPHero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  bottom: 0;
+  width: 100vw;
+  height: 110px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, var(--vp-c-bg));
+}
+
+.VPHome .VPHero .container .main {
+  max-width: 760px;
+}
+
+.VPHero .name,
+.VPHero .text {
+  font-family: var(--z-font-serif);
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.VPHero .name {
+  font-size: var(--z-step-hero);
+  line-height: 1;
+  font-weight: 900;
+  /* 이전 그라디언트 name 무력화 → 순백 */
+  background: none !important;
+  -webkit-text-fill-color: #fff;
+  text-shadow: 0 3px 22px rgba(0, 0, 0, 0.5);
+}
+.VPHero .text {
+  color: #fff;
+  font-weight: 700;
+  font-size: clamp(1.05rem, 0.9rem + 0.9vw, 1.55rem);
+  line-height: 1.35;
+  margin-top: 0.6rem;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
+}
+/* 컨소시엄 라인 — 상단 테라코타 룰 + 밝은 흰색 */
+.VPHero .tagline {
+  display: inline-block;
+  font-size: var(--z-lead);
+  color: rgba(255, 255, 255, 0.94);
+  max-width: 52ch;
+  line-height: 1.55;
+  font-weight: 600;
+  margin-top: 1.15rem;
+  padding-top: 0.7rem;
+  border-top: 2px solid var(--z-terra-500);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Entrance animation for hero pieces */
+@keyframes z-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+.VPHero .name {
+  animation: z-rise 0.7s var(--z-ease) both;
+}
+.VPHero .text {
+  animation: z-rise 0.7s var(--z-ease) 0.08s both;
+}
+.VPHero .tagline {
+  animation: z-rise 0.7s var(--z-ease) 0.16s both;
+}
+.VPHero .actions {
+  animation: z-rise 0.7s var(--z-ease) 0.26s both;
+}
+
+/* Buttons — subtle depth + motion */
+.VPButton {
+  transition:
+    transform 0.22s var(--z-ease),
+    box-shadow 0.22s var(--z-ease),
+    background-color 0.22s var(--z-ease),
+    border-color 0.22s var(--z-ease);
+  font-weight: 600;
+}
+.VPButton.brand {
+  box-shadow: 0 6px 18px -8px rgba(160, 55, 31, 0.7);
+}
+.VPButton:hover {
+  transform: translateY(-2px);
+}
+.VPButton.brand:hover {
+  box-shadow: 0 12px 26px -10px rgba(160, 55, 31, 0.8);
+}
+/* 히어로(사진 위)의 alt 버튼 — 반투명 화이트 아웃라인 */
+.VPHero .VPButton.alt {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #fff;
+  backdrop-filter: blur(2px);
+}
+.VPHero .VPButton.alt:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: #fff;
+}
+.VPButton.alt:hover {
+  border-color: var(--vp-c-brand-2);
+}
+
+/* -------------------------------------------------------------------------
+   4. Feature cards — glass, gradient border on hover, icon motion
+   ------------------------------------------------------------------------- */
+.VPFeatures .VPFeature {
+  position: relative;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--vp-c-bg-soft) 82%, transparent);
+  overflow: hidden;
+  transition:
+    transform 0.32s var(--z-ease),
+    box-shadow 0.32s var(--z-ease),
+    border-color 0.32s var(--z-ease);
+}
+.VPFeatures .VPFeature::after {
+  /* gradient wash that fades in on hover */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    145deg,
+    rgba(192, 68, 46, 0.1),
+    rgba(192, 68, 46, 0.04) 60%,
+    transparent
+  );
+  transition: opacity 0.32s var(--z-ease);
+}
+.VPFeatures .VPFeature:hover {
+  transform: translateY(-6px);
+  border-color: color-mix(in srgb, var(--vp-c-brand-1) 55%, transparent);
+  box-shadow:
+    0 18px 40px -24px rgba(30, 27, 24, 0.5),
+    0 2px 8px -4px rgba(30, 27, 24, 0.22);
+}
+.dark .VPFeatures .VPFeature:hover {
+  box-shadow:
+    0 20px 46px -22px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(214, 90, 67, 0.18);
+}
+.VPFeatures .VPFeature:hover::after {
+  opacity: 1;
+}
+/* 반전 강조 카드 — 덱의 검정 카드 감성(첫 카드) */
+.VPFeatures .item:first-child .VPFeature {
+  background: linear-gradient(160deg, #221c18, #1a1512);
+  border-color: transparent;
+}
+.VPFeatures .item:first-child .VPFeature .title,
+.VPFeatures .item:first-child .VPFeature .VPImage + .title {
+  color: #fff;
+}
+.VPFeatures .item:first-child .VPFeature .details {
+  color: rgba(255, 255, 255, 0.72);
+}
+.VPFeatures .item:first-child .VPFeature .icon {
+  background: linear-gradient(
+    140deg,
+    rgba(192, 68, 46, 0.35),
+    rgba(255, 255, 255, 0.08)
+  );
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.VPFeatures .item:first-child .VPFeature::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--z-terra-500);
+}
+.VPFeatures .VPFeature .icon {
+  font-size: 26px;
+  background: linear-gradient(
+    140deg,
+    var(--vp-c-brand-soft),
+    color-mix(in srgb, var(--z-gold-500) 18%, transparent)
+  );
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  transition: transform 0.32s var(--z-ease);
+}
+.VPFeatures .VPFeature:hover .icon {
+  transform: scale(1.08) rotate(-4deg);
+}
+.VPFeatures .VPFeature .title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* -------------------------------------------------------------------------
+   4b. 발표덱 에디토리얼 모티프 — 강조어·풀인용·배지·아이브로우
+   ------------------------------------------------------------------------- */
+/* 강조어(bold) = 테라코타 */
+.vp-doc strong {
+  color: var(--vp-c-brand-1);
+  font-weight: 800;
+}
+.vp-doc em {
+  color: var(--vp-c-brand-1);
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* h2 아이브로우 느낌 — 붉은 점 + 볼드 잉크 */
+.vp-doc h2 {
+  font-weight: 800;
+}
+.vp-doc h1 {
+  font-weight: 900;
+}
+
+/* 좌측 테라코타 세로바 풀인용 */
+.vp-doc blockquote {
+  border-left: 3px solid var(--z-terra-500);
+  padding: 0.4rem 0 0.4rem 1.1rem;
+  margin: 1.3rem 0;
+  color: var(--vp-c-text-1);
+  font-weight: 600;
+  background: linear-gradient(
+    90deg,
+    var(--vp-c-brand-soft),
+    transparent 60%
+  );
+  border-radius: 0 8px 8px 0;
+}
+.vp-doc blockquote p {
+  margin: 0.3rem 0;
+}
+
+/* 알약 배지 — 검정 pill 계열(덱 평가항목 스타일) */
+.vp-doc .VPBadge {
+  border-radius: 999px;
+  border: none;
+  font-weight: 700;
+  padding: 0 10px;
+  transform: translateY(-1px);
+}
+.vp-doc .VPBadge.tip,
+.vp-doc .VPBadge.info {
+  background: var(--z-ink-900);
+  color: #fff;
+}
+.dark .vp-doc .VPBadge.tip,
+.dark .vp-doc .VPBadge.info {
+  background: #000;
+  color: #fff;
+}
+.vp-doc .VPBadge.warning {
+  background: var(--z-terra-500);
+  color: #fff;
+}
+.vp-doc .VPBadge.danger {
+  background: var(--z-terra-600);
+  color: #fff;
+}
+
+/* 아이브로우 라벨 유틸(재사용) — 레터스페이스 대문자 + 붉은 점 */
+.vp-doc .eyebrow,
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-2);
+}
+.eyebrow::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--z-terra-500);
+}
+
+/* -------------------------------------------------------------------------
+   5. Nav & sidebar polish
+   ------------------------------------------------------------------------- */
+.VPNav {
+  backdrop-filter: saturate(1.4) blur(12px);
+}
+.VPNavBar:not(.top) {
+  border-bottom: 1px solid var(--vp-c-divider);
+  background: color-mix(in srgb, var(--vp-c-bg) 78%, transparent);
+}
+.VPNavBar .title {
+  font-family: var(--z-font-serif);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.VPNavBarMenuLink {
+  transition: color 0.2s var(--z-ease);
+}
+
+/* Active sidebar item — brand tinted pill with accent bar */
+.VPSidebarItem.is-active > .item .link .text,
+.VPSidebarItem.is-active > .item .text {
+  color: var(--vp-c-brand-1);
+  font-weight: 600;
+}
+.VPSidebar .group .VPSidebarItem.is-link .link:hover .text {
+  color: var(--vp-c-brand-1);
+}
+.VPSidebarItem.level-0 > .item .text {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Sidebar link hover — subtle slide */
+.VPSidebar .link .text {
+  transition: transform 0.2s var(--z-ease), color 0.2s var(--z-ease);
+}
+.VPSidebar .link:hover .text {
+  transform: translateX(2px);
+}
+
+/* -------------------------------------------------------------------------
+   6. Code blocks & inline code
+   ------------------------------------------------------------------------- */
+.vp-doc div[class*="language-"] {
+  border-radius: 12px;
+  border: 1px solid var(--vp-c-divider);
+  box-shadow: 0 10px 30px -22px rgba(30, 27, 24, 0.5);
+}
+.dark .vp-doc div[class*="language-"] {
+  box-shadow: 0 12px 34px -22px rgba(0, 0, 0, 0.7);
+}
+.vp-doc div[class*="language-"] .lang {
+  transition: opacity 0.2s var(--z-ease);
+}
+.vp-doc :not(pre) > code {
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* -------------------------------------------------------------------------
+   7. Custom containers (tip / warning / info) — accent bar
+   ------------------------------------------------------------------------- */
+.vp-doc .custom-block {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  position: relative;
+  padding-left: 20px;
+}
+.vp-doc .custom-block::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 12px 0 0 12px;
+  background: var(--vp-c-brand-2);
+}
+.vp-doc .custom-block.tip::before {
+  background: linear-gradient(180deg, var(--vp-c-brand-2), var(--z-navy-400));
+}
+.vp-doc .custom-block.warning::before {
+  background: linear-gradient(180deg, var(--z-gold-500), var(--z-gold-400));
+}
+.vp-doc .custom-block.info::before {
+  background: var(--vp-c-divider);
+}
+.vp-doc .custom-block .custom-block-title {
+  font-weight: 700;
+}
+
+/* Tables — editorial ledger. 반응형: 넘칠 때만 가로 스크롤(display:block + max-width). */
+.vp-doc table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  /* content-fit 폭 + 컨테이너 초과 시 스크롤 */
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 22px 0;
+  box-shadow: 0 8px 26px -20px rgba(30, 27, 24, 0.5);
+  -webkit-overflow-scrolling: touch;
+}
+.dark .vp-doc table {
+  box-shadow: 0 10px 30px -20px rgba(0, 0, 0, 0.6);
+}
+.vp-doc tr {
+  background: transparent;
+  transition: background-color 0.18s var(--z-ease);
+}
+/* 헤더 — 강조(페이퍼 그라디언트 + 골드/네이비 하단 괘선) */
+.vp-doc thead th {
+  background: linear-gradient(
+    180deg,
+    var(--vp-c-bg-soft),
+    color-mix(in srgb, var(--vp-c-bg-soft) 55%, var(--vp-c-bg))
+  );
+  color: var(--vp-c-brand-1);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, var(--vp-c-brand-2), var(--z-gold-500))
+    1;
+  padding: 12px 16px;
+}
+.vp-doc tbody td {
+  border: none;
+  border-top: 1px solid var(--vp-c-divider);
+  padding: 11px 16px;
+  vertical-align: top;
+}
+/* 첫 열 살짝 강조(구조표의 라벨 열) */
+.vp-doc tbody td:first-child {
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+/* zebra */
+.vp-doc tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--vp-c-bg-soft) 45%, transparent);
+}
+.vp-doc tbody tr:hover {
+  background: var(--vp-c-brand-soft);
+}
+
+/* -------------------------------------------------------------------------
+   Mermaid — 브랜드 커스텀. 프레임 카드 + light/dark SVG 보정.
+   테마 색은 config.mts(themeVariables)에서, 여기선 컨테이너·다크 보정만.
+   ------------------------------------------------------------------------- */
+.vp-doc .mermaid {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  padding: 1.4rem 1rem;
+  margin: 22px 0;
+  background:
+    radial-gradient(
+      120% 100% at 50% 0%,
+      color-mix(in srgb, var(--vp-c-brand-soft) 60%, transparent),
+      transparent 70%
+    ),
+    var(--vp-c-bg-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 10px 30px -22px rgba(30, 27, 24, 0.5);
+  text-align: center;
+  overflow-x: auto;
+}
+.vp-doc .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+/* 노드 라벨 가독성 — 폰트 두께 */
+.vp-doc .mermaid .nodeLabel,
+.vp-doc .mermaid .edgeLabel,
+.vp-doc .mermaid span.nodeLabel {
+  font-weight: 500;
+}
+/* 서브그래프(cluster) 라운드 + 은은한 그림자(라이트) */
+.vp-doc .mermaid .cluster rect {
+  rx: 10px;
+  ry: 10px;
+}
+.vp-doc .mermaid .node rect,
+.vp-doc .mermaid .node polygon {
+  rx: 7px;
+  ry: 7px;
+}
+
+/* --- 다크 보정: 보드는 어둡게, 노드 칩은 라이트 유지(에디토리얼 클리핑 감성) --- */
+/* 서브그래프 패널 — 반투명 다크 + 골드 보더 */
+.dark .vp-doc .mermaid .cluster rect {
+  fill: rgba(15, 27, 45, 0.72) !important;
+  stroke: var(--z-gold-500) !important;
+}
+.dark .vp-doc .mermaid .cluster .cluster-label,
+.dark .vp-doc .mermaid .cluster text,
+.dark .vp-doc .mermaid .cluster span {
+  fill: #e8eef7 !important;
+  color: #e8eef7 !important;
+}
+/* 엣지 라벨 — 다크 배경 + 라이트 텍스트(가독) */
+.dark .vp-doc .mermaid .edgeLabel,
+.dark .vp-doc .mermaid .edgeLabel rect,
+.dark .vp-doc .mermaid .edgeLabel .label {
+  background: transparent !important;
+  fill: #0f1b2d !important;
+}
+.dark .vp-doc .mermaid .edgeLabel foreignObject div,
+.dark .vp-doc .mermaid .edgeLabel span {
+  background-color: rgba(15, 27, 45, 0.9) !important;
+  color: #cfe0f5 !important;
+  border-radius: 4px;
+  padding: 0 3px;
+}
+/* 엣지 라인 — 다크에서 살짝 밝게 */
+.dark .vp-doc .mermaid .edgePath .path,
+.dark .vp-doc .mermaid .flowchart-link {
+  stroke: #7fabe0 !important;
+}
+.dark .vp-doc .mermaid .arrowMarkerPath,
+.dark .vp-doc .mermaid marker path {
+  fill: #7fabe0 !important;
+  stroke: #7fabe0 !important;
+}
+
+/* 기본 노드(온도계 b1~b5 제외) — 다크에서 네이비 칩 + 라이트 텍스트 */
+.dark .vp-doc .mermaid g.node.default:not(.b1):not(.b2):not(.b3):not(.b4):not(.b5) rect,
+.dark .vp-doc .mermaid g.node.default:not(.b1):not(.b2):not(.b3):not(.b4):not(.b5) polygon,
+.dark .vp-doc .mermaid g.node.default:not(.b1):not(.b2):not(.b3):not(.b4):not(.b5) path {
+  fill: #26221d !important;
+  stroke: #d65a43 !important;
+}
+.dark .vp-doc .mermaid g.node.default:not(.b1):not(.b2):not(.b3):not(.b4):not(.b5) .nodeLabel,
+.dark .vp-doc .mermaid g.node.default:not(.b1):not(.b2):not(.b3):not(.b4):not(.b5) .nodeLabel *,
+.dark .vp-doc .mermaid g.node.default:not(.b1):not(.b2):not(.b3):not(.b4):not(.b5) foreignObject span,
+.dark .vp-doc .mermaid g.node.default:not(.b1):not(.b2):not(.b3):not(.b4):not(.b5) text {
+  color: #e8eef7 !important;
+  fill: #e8eef7 !important;
+}
+/* 실린더/DB 노드도 동일 처리(위 셀렉터가 커버하지만 라벨 보강) */
+/* 온도계 b1~b5 — 파스텔 유지, 텍스트만 잉크로(다크 테마가 라이트로 만드는 것 방지) */
+.dark .vp-doc .mermaid g.node.b1 .nodeLabel,
+.dark .vp-doc .mermaid g.node.b1 .nodeLabel *,
+.dark .vp-doc .mermaid g.node.b2 .nodeLabel,
+.dark .vp-doc .mermaid g.node.b2 .nodeLabel *,
+.dark .vp-doc .mermaid g.node.b3 .nodeLabel,
+.dark .vp-doc .mermaid g.node.b3 .nodeLabel *,
+.dark .vp-doc .mermaid g.node.b4 .nodeLabel,
+.dark .vp-doc .mermaid g.node.b4 .nodeLabel *,
+.dark .vp-doc .mermaid g.node.b5 .nodeLabel,
+.dark .vp-doc .mermaid g.node.b5 .nodeLabel * {
+  color: #16202e !important;
+  fill: #16202e !important;
+}
+/* 서브그래프 타이틀 텍스트(수집 등) 라이트 */
+.dark .vp-doc .mermaid .cluster .nodeLabel,
+.dark .vp-doc .mermaid .cluster-label .nodeLabel,
+.dark .vp-doc .mermaid .cluster-label span,
+.dark .vp-doc .mermaid .cluster-label text {
+  color: #e8eef7 !important;
+  fill: #e8eef7 !important;
+}
+
+/* Footer refinement */
+.VPFooter {
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+/* -------------------------------------------------------------------------
+   8. Scroll reveal (paired with reveal.ts)
+   ------------------------------------------------------------------------- */
+.z-reveal {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  transition:
+    opacity var(--z-dur) var(--z-ease),
+    transform var(--z-dur) var(--z-ease);
+  transition-delay: var(--z-reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.z-reveal.z-reveal-shown {
+  opacity: 1;
+  transform: none;
+}
+
+/* -------------------------------------------------------------------------
+   8b. FlowDiagram / TempBands — 머메이드 대체 커스텀 도식
+   가로 흐름 + 커넥터(데스크탑), 세로 스택(모바일). 브랜드 네이비·골드·잉크.
+   ------------------------------------------------------------------------- */
+/* 세로 파이프라인 — 스테이지가 위→아래로 흐르고, 병렬 노드는 가로 행. */
+.zflow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 1.6rem 1.1rem;
+  margin: 22px 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  background:
+    radial-gradient(
+      120% 70% at 50% 0%,
+      color-mix(in srgb, var(--vp-c-brand-soft) 55%, transparent),
+      transparent 62%
+    ),
+    var(--vp-c-bg-soft);
+  box-shadow: 0 10px 30px -22px rgba(30, 27, 24, 0.5);
+  overflow-x: auto;
+}
+.dark .zflow {
+  box-shadow: 0 12px 34px -22px rgba(0, 0, 0, 0.6);
+}
+
+.zflow-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  max-width: 100%;
+}
+.zflow-stage.is-group {
+  width: auto;
+  max-width: 100%;
+  padding: 0.7rem 0.85rem 0.85rem;
+  border: 1px dashed
+    color-mix(in srgb, var(--z-gold-500) 55%, var(--vp-c-divider));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--z-gold-500) 7%, transparent);
+}
+.zflow-stage-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--z-gold-600);
+  text-align: center;
+}
+.dark .zflow-stage-label {
+  color: var(--z-gold-400);
+}
+/* 병렬 노드 — 가로 행(넘치면 줄바꿈) */
+.zflow-nodes {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.zflow-node {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 152px;
+  max-width: 236px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid
+    color-mix(in srgb, var(--vp-c-brand-2) 28%, var(--vp-c-divider));
+  border-radius: 11px;
+  background: var(--vp-c-bg);
+  box-shadow: 0 2px 8px -5px rgba(30, 27, 24, 0.4);
+  transition:
+    transform 0.25s var(--z-ease),
+    box-shadow 0.25s var(--z-ease),
+    border-color 0.25s var(--z-ease);
+}
+.dark .zflow-node {
+  background: #26221d;
+  border-color: color-mix(in srgb, #d65a43 40%, transparent);
+}
+.zflow-node:hover {
+  transform: translateY(-2px);
+  border-color: var(--vp-c-brand-2);
+  box-shadow: 0 10px 22px -12px rgba(30, 27, 24, 0.5);
+}
+.zflow-node-icon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+  border-radius: 9px;
+  font-weight: 700;
+  color: var(--vp-c-brand-1);
+  background: linear-gradient(
+    140deg,
+    var(--vp-c-brand-soft),
+    color-mix(in srgb, var(--z-gold-500) 16%, transparent)
+  );
+  border: 1px solid var(--vp-c-divider);
+}
+.zflow-node-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.zflow-node-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.28;
+  color: var(--vp-c-text-1);
+}
+.zflow-node-note {
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--vp-c-text-2);
+}
+.zflow-node-bullets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.zflow-bullet {
+  font-size: 0.68rem;
+  padding: 1px 8px;
+  border-radius: 999px;
+  color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+  border: 1px solid color-mix(in srgb, var(--vp-c-brand-2) 24%, transparent);
+}
+
+/* 종착/핵심 노드 강조 */
+.zflow-node.tone-brand {
+  background: linear-gradient(140deg, var(--z-navy-700), var(--z-navy-500));
+  border-color: transparent;
+  box-shadow: 0 8px 20px -10px rgba(160, 55, 31, 0.7);
+}
+.dark .zflow-node.tone-brand {
+  background: linear-gradient(140deg, var(--z-navy-600), var(--z-navy-400));
+}
+.zflow-node.tone-brand .zflow-node-title {
+  color: #fff;
+}
+.zflow-node.tone-brand .zflow-node-note {
+  color: rgba(255, 255, 255, 0.82);
+}
+.zflow-node.tone-brand .zflow-node-icon {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* 커넥터 — 아래로 향하는 화살표 + 선택적 라벨 */
+.zflow-conn {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 0.35rem 0;
+  color: var(--z-navy-400);
+}
+.dark .zflow-conn {
+  color: var(--z-navy-300);
+}
+.zflow-conn-label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--vp-c-text-2);
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.zflow-arrow {
+  display: block;
+  transform: rotate(90deg);
+}
+
+/* 온도 5구간 칩 */
+.ztemp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.4rem 1.1rem;
+  margin: 22px 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  background:
+    radial-gradient(
+      120% 100% at 50% 0%,
+      color-mix(in srgb, var(--vp-c-brand-soft) 50%, transparent),
+      transparent 68%
+    ),
+    var(--vp-c-bg-soft);
+  box-shadow: 0 10px 30px -22px rgba(30, 27, 24, 0.5);
+}
+.ztemp-chip {
+  flex: 1 1 120px;
+  min-width: 108px;
+  max-width: 184px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0.75rem 0.6rem;
+  border-radius: 12px;
+  border: 1px solid;
+  text-align: center;
+  transition:
+    transform 0.25s var(--z-ease),
+    box-shadow 0.25s var(--z-ease);
+}
+.ztemp-chip:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -14px rgba(30, 27, 24, 0.5);
+}
+.ztemp-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #1f2937;
+}
+.ztemp-range {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #374151;
+  opacity: 0.85;
+}
+.ztemp-arrow {
+  flex: none;
+  font-weight: 700;
+  color: var(--z-navy-400);
+}
+.dark .ztemp-arrow {
+  color: var(--z-navy-300);
+}
+/* 5구간 색(원본 팔레트 유지) */
+.ztemp-b1 {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+.ztemp-b2 {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+.ztemp-b3 {
+  background: #fef9c3;
+  border-color: #fde047;
+}
+.ztemp-b4 {
+  background: #ffedd5;
+  border-color: #fdba74;
+}
+.ztemp-b5 {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+/* 모바일 — 병렬 노드도 세로 스택(카드 폭 채움) */
+@media (max-width: 640px) {
+  .zflow-nodes {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  .zflow-node {
+    max-width: none;
+    width: 100%;
+  }
+  .zflow-stage.is-group {
+    width: 100%;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   8c. DomainTopology — 도메인/서브도메인 라우팅 토폴로지
+   사용자 → Cloudflare Named Tunnel(하나) → 서브도메인 분기.
+   ------------------------------------------------------------------------- */
+.ztopo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 1.6rem 1.1rem;
+  margin: 22px 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  background:
+    radial-gradient(
+      120% 70% at 50% 0%,
+      color-mix(in srgb, var(--vp-c-brand-soft) 55%, transparent),
+      transparent 62%
+    ),
+    var(--vp-c-bg-soft);
+  box-shadow: 0 10px 30px -22px rgba(30, 27, 24, 0.5);
+  overflow-x: auto;
+}
+.dark .ztopo {
+  box-shadow: 0 12px 34px -22px rgba(0, 0, 0, 0.6);
+}
+
+.ztopo-trunknode {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 220px;
+  max-width: min(100%, 440px);
+  padding: 0.7rem 0.9rem;
+  border: 1px solid
+    color-mix(in srgb, var(--vp-c-brand-2) 28%, var(--vp-c-divider));
+  border-radius: 12px;
+  background: var(--vp-c-bg);
+  box-shadow: 0 2px 8px -5px rgba(30, 27, 24, 0.4);
+}
+.dark .ztopo-trunknode {
+  background: #26221d;
+  border-color: color-mix(in srgb, #d65a43 40%, transparent);
+}
+
+/* 허브(Cloudflare Named Tunnel) — 네이비 강조 */
+.ztopo-hub {
+  border-color: transparent;
+  background: linear-gradient(
+    140deg,
+    color-mix(in srgb, var(--z-navy-700) 92%, #000),
+    var(--z-navy-500)
+  );
+  box-shadow: 0 10px 26px -12px rgba(160, 55, 31, 0.7);
+}
+.dark .ztopo-hub {
+  background: linear-gradient(140deg, var(--z-navy-600), var(--z-navy-400));
+}
+.ztopo-hub .zflow-node-title {
+  color: #fff;
+  font-weight: 700;
+}
+.ztopo-hub .zflow-node-note {
+  color: rgba(255, 255, 255, 0.82);
+}
+.ztopo-hub-icon {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+.ztopo-tag {
+  margin-left: 0.4rem;
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.78em;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 6px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* 서브도메인 그리드 */
+.ztopo-nodes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  width: 100%;
+  max-width: 660px;
+}
+.ztopo-leaf {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid
+    color-mix(in srgb, var(--vp-c-brand-2) 26%, var(--vp-c-divider));
+  border-left: 3px solid var(--vp-c-brand-2);
+  background: var(--vp-c-bg);
+  box-shadow: 0 2px 8px -5px rgba(30, 27, 24, 0.4);
+  transition:
+    transform 0.25s var(--z-ease),
+    box-shadow 0.25s var(--z-ease),
+    border-color 0.25s var(--z-ease);
+}
+.dark .ztopo-leaf {
+  background: #26221d;
+  border-color: color-mix(in srgb, #d65a43 34%, transparent);
+  border-left-color: var(--z-navy-400);
+}
+.ztopo-leaf:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -12px rgba(30, 27, 24, 0.5);
+}
+/* 정본(canonical) — 골드 강조 */
+.ztopo-leaf.is-canonical {
+  border-left-color: var(--z-gold-500);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--z-gold-500) 8%, var(--vp-c-bg)),
+    var(--vp-c-bg)
+  );
+}
+.dark .ztopo-leaf.is-canonical {
+  border-left-color: var(--z-gold-400);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--z-gold-400) 14%, #26221d),
+    #26221d
+  );
+}
+
+.ztopo-leaf-icon {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  border-radius: 9px;
+  border: 1px solid var(--vp-c-divider);
+  background: linear-gradient(
+    140deg,
+    var(--vp-c-brand-soft),
+    color-mix(in srgb, var(--z-gold-500) 14%, transparent)
+  );
+}
+.ztopo-leaf-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ztopo-domain {
+  font-family: var(--vp-font-family-mono);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: -0.01em;
+  color: var(--vp-c-text-1);
+  word-break: break-all;
+}
+.ztopo-role {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+}
+.ztopo-leaf-note {
+  font-size: 0.74rem;
+  color: var(--vp-c-text-2);
+}
+.ztopo-redirect {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  width: fit-content;
+  margin-top: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  color: var(--z-gold-600);
+  background: color-mix(in srgb, var(--z-gold-500) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--z-gold-500) 40%, transparent);
+}
+.dark .ztopo-redirect {
+  color: var(--z-gold-400);
+}
+
+@media (max-width: 640px) {
+  .ztopo-nodes {
+    grid-template-columns: 1fr;
+  }
+  .ztopo-trunknode {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   9. Reduced motion — hard opt-out of all non-essential animation
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .z-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .VPFeatures .VPFeature:hover,
+  .VPButton:hover {
+    transform: none !important;
+  }
+}
